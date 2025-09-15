@@ -3,54 +3,114 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>We're Amazing — [Your Names]</title>
-  <meta name="description" content="We're Amazing! Save our pendulum date and see our photos." />
+  <title>Engagement — [Your Names]</title>
+  <meta name="description" content="A bold, modern engagement announcement. Scroll to reveal." />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
   <style>
-    .hero{position:relative;min-height:60svh}
-    .hero img{width:100%;height:60svh;object-fit:cover;display:block}
-    .overlay{ position:absolute; inset:0; display:flex; align-items:flex-end; justify-content:center; text-align:center; color:#fff; background: linear-gradient(180deg, rgba(0,0,0,0) 45%, rgba(33,10,56,.65) 100%); padding:2rem; }
-    /* ——— Pastel pop without replacing existing styles ——— */
-  :root{
-    --pastel-purple:#e9d7ff; /* soft lilac */
-    --deep-purple:#5a2d82;  /* readable text on lilac */
-    --lavender-bg:#f7f3fa;  /* ultra‑light section tint */
-  }
-  .overlay{ /* gently tint the existing dark overlay */
-    background: linear-gradient(180deg, rgba(90,45,130,.38), rgba(233,215,255,.35));
-  }
-  .date-chip{
-    display:inline-block; background:var(--pastel-purple); color:var(--deep-purple);
-    padding:.5rem 1rem; border-radius:999px; font-weight:600; box-shadow:0 3px 10px rgba(90,45,130,.12);
-  }
-  .bg-lavender{ background-color: var(--lavender-bg); }
-  .img-pz{ box-shadow:0 6px 16px rgba(90,45,130,.14); }
-  .stack{display:flex;flex-direction:column;gap:.75rem}
-  /* UX extras: modern + sleek */
-  .hero-title{font-family: ui-serif, Georgia, "Times New Roman", Times, serif; font-weight:700; letter-spacing:.04em; text-transform:uppercase; font-size:clamp(2rem, 8vw, 5rem); line-height:1.05}
-  /* gentle fade-in on scroll */
-  .fade-in{opacity:0; transform:translateY(12px); transition:opacity .6s ease, transform .6s ease}
-  .fade-in.is-in{opacity:1; transform:none}
-  /* extra breathing space */
-  .py-5{padding-top:4.5rem !important; padding-bottom:4.5rem !important}
-</style>
+    /* ——— Palette (dark, wedding‑appropriate) ——— */
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Poppins:wght@300;500;700&display=swap');
+    :root{
+      --bg-deep:#0b0613;     /* near-black plum */
+      --bg-plum:#1a0f2a;     /* aubergine */
+      --lavender:#c8a2ff;    /* accent */
+      --fuchsia:#ff4db3;     /* accent */
+      --blush:#ff9ecf;       /* accent */
+      --gold:#ffd08a;        /* accent */
+      --ink:#f7ecff;         /* light text */
+    }
+
+    html,body{height:100%}
+    body{
+      margin:0; color:var(--ink);
+      font-family:'Poppins', system-ui, sans-serif; letter-spacing:.01em;
+      background:
+        radial-gradient(1200px 600px at 20% -10%, var(--bg-plum) 0%, var(--bg-deep) 60%) fixed,
+        linear-gradient(180deg, #120919, #0b0613);
+      scroll-behavior:smooth;
+      scroll-snap-type:y mandatory; /* snap sections for that "wanky" feel */
+      overscroll-behavior-y:none;
+    }
+
+    /* ——— Layout ——— */
+    .vh-section{min-height:100svh; position:relative; scroll-snap-align:start}
+    .overlay{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; text-align:center; padding:2rem; color:var(--ink)}
+
+    /* Cover hero (scroll to reveal) */
+    .hero{position:relative}
+    .hero img{width:100%; height:100svh; object-fit:cover; display:block}
+    .hero-cover .overlay{
+      background:
+        radial-gradient(600px 400px at 70% 30%, rgba(255,77,179,.35), rgba(0,0,0,0) 60%),
+        linear-gradient(180deg, rgba(0,0,0,.0), rgba(10,6,16,.75));
+    }
+    .cover-title{font-family:'Cormorant Garamond', serif; font-weight:700; letter-spacing:.10em; text-transform:uppercase; font-size:clamp(2.2rem, 8vw, 6rem); line-height:1}
+    .subtle-date{opacity:.9; font-weight:300; letter-spacing:.2em; text-transform:uppercase}
+
+    .scroll-cue{position:absolute; left:50%; bottom:22px; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:.3rem; font-size:.8rem; color:rgba(255,255,255,.8)}
+    .scroll-cue .chev{width:22px; height:22px; border-right:2px solid rgba(255,255,255,.85); border-bottom:2px solid rgba(255,255,255,.85); transform:rotate(45deg); animation:bounce 1.8s infinite}
+    @keyframes bounce{0%,100%{transform:translateY(0) rotate(45deg)}50%{transform:translateY(6px) rotate(45deg)}}
+
+    /* Reveal hero */
+    .hero-reveal{
+      background:
+        radial-gradient(700px 350px at 20% 15%, rgba(200,162,255,.25), transparent 70%),
+        radial-gradient(800px 450px at 85% 30%, rgba(255,78,179,.20), transparent 70%),
+        linear-gradient(180deg, #13091d 0%, #0b0613 100%);
+    }
+    .hero-reveal .overlay{background:linear-gradient(180deg, rgba(0,0,0,.15), rgba(0,0,0,.4))}
+    .hero-title{font-family:'Cormorant Garamond', serif; font-weight:700; letter-spacing:.08em; text-transform:uppercase; font-size:clamp(2.5rem, 9vw, 5.5rem); margin:0 0 .75rem}
+    .date-chip{display:inline-block; background:linear-gradient(135deg, #ede7f6 0%, #e9d7ff 60%, var(--gold) 100%); color:#2a113c; padding:.6rem 1.25rem; border-radius:999px; font-weight:600; box-shadow:0 10px 30px rgba(0,0,0,.25)}
+    .cta-row{margin-top:1.5rem; display:flex; gap:.75rem; justify-content:center}
+    .btn-ghost{color:var(--ink); border:1px solid rgba(255,255,255,.4); padding:.6rem 1rem; border-radius:999px; backdrop-filter:blur(6px); background:rgba(255,255,255,.06)}
+    .btn-ghost:hover{background:rgba(255,255,255,.12)}
+
+    /* Photos */
+    .section-photos{background:rgba(255,255,255,.02); border-top:1px solid rgba(255,255,255,.06)}
+    .img-pz{border-radius:1rem; box-shadow:0 10px 26px rgba(0,0,0,.35); transition:transform .35s ease, filter .35s ease, box-shadow .35s ease; filter:saturate(1.1) contrast(1.05)}
+    .img-pz:hover{transform:translateY(-4px) scale(1.015); box-shadow:0 16px 40px rgba(0,0,0,.45); filter:saturate(1.2) contrast(1.08)}
+
+    /* Fade-in on scroll */
+    .fade-in{opacity:0; transform:translateY(12px); transition:opacity .6s ease, transform .6s ease}
+    .fade-in.is-in{opacity:1; transform:none}
+
+    /* Spacious sections */
+    .py-5{padding-top:5.5rem !important; padding-bottom:5.5rem !important}
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce){.fade-in,.img-pz{transition:none} .img-pz:hover{transform:none}}
+  </style>
 </head>
 <body>
   <main>
-    <!-- HERO -->
-    <section class="hero">
+    <!-- COVER HERO (scroll to reveal) -->
+    <section class="hero hero-cover vh-section" aria-label="Cover">
       <img src="pen.jpg" alt="Main banner image" />
-      <div class="overlay"><div class="stack text-white">
-          <h1 class="hero-title fw-semibold mb-3">We're Amazing! 🎉</h1>
-          <div class="date-chip">Pendulum Date: <strong>[DD Month YYYY]</strong></div>
+      <div class="overlay">
+        <div class="text-center">
+          <div class="cover-title fade-in">[A] &amp; [B]</div>
+          <div class="subtle-date mt-3 fade-in">[DD Month YYYY] · [City]</div>
+        </div>
+        <div class="scroll-cue"><span>Scroll</span><span class="chev"></span></div>
+      </div>
+    </section>
+
+    <!-- REVEAL HERO -->
+    <section class="hero-reveal vh-section d-flex align-items-center" aria-label="Reveal">
+      <div class="overlay">
+        <div class="text-center">
+          <h1 class="hero-title fade-in">We're Engaged</h1>
+          <div class="date-chip fade-in">Wedding Date: <strong>[DD Month YYYY]</strong></div>
+          <div class="cta-row mt-4 fade-in">
+            <a class="btn btn-ghost" href="#photos">See Photos</a>
+          </div>
         </div>
       </div>
     </section>
 
     <!-- PHOTOS GRID -->
-    <section class="py-5 bg-lavender">
+    <section id="photos" class="py-5 section-photos" aria-label="Engagement photos">
       <div class="container">
-        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3">
+        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-4">
           <div class="col"><img class="img-fluid rounded-3 shadow-sm img-pz fade-in" src="/images/engagement/1.jpg" alt="Photo 1" loading="lazy"></div>
           <div class="col"><img class="img-fluid rounded-3 shadow-sm img-pz fade-in" src="/images/engagement/2.jpg" alt="Photo 2" loading="lazy"></div>
           <div class="col"><img class="img-fluid rounded-3 shadow-sm img-pz fade-in" src="/images/engagement/3.jpg" alt="Photo 3" loading="lazy"></div>
@@ -60,8 +120,9 @@
       </div>
     </section>
   </main>
+
   <script>
-    // Tiny IntersectionObserver to reveal .fade-in elements
+    // Reveal .fade-in elements on scroll (tiny, dependency-free)
     (function(){
       var els = document.querySelectorAll('.fade-in');
       if (!('IntersectionObserver' in window) || els.length === 0){
@@ -69,10 +130,8 @@
         return;
       }
       var io = new IntersectionObserver(function(entries){
-        entries.forEach(function(e){
-          if(e.isIntersecting){ e.target.classList.add('is-in'); io.unobserve(e.target); }
-        });
-      }, { threshold: 0.15 });
+        entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('is-in'); io.unobserve(e.target);} });
+      }, { threshold: 0.18 });
       els.forEach(function(el){ io.observe(el); });
     })();
   </script>

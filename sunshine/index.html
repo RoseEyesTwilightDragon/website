@@ -61,20 +61,17 @@
 
     /* Headline overlays the grid (doesn't occupy a cell) */
     .headline{position:absolute; inset:0; display:grid; place-items:center; pointer-events:none}
-    .headline h1{font-family:'Cormorant Garamond', serif; font-weight:700; letter-spacing:.22em; text-transform:uppercase; font-size:clamp(2rem, 8vw, 5.2rem); line-height:1; text-shadow:0 12px 34px rgba(0,0,0,.55)}
+    .headline h1{font-family:'Cormorant Garamond', serif; font-weight:700; letter-spacing:.22em; text-transform:uppercase; font-size:clamp(2rem, 8vw, 5.2rem); line-height:1; text-shadow:0 12px 34px rgba(0,0,0,.55); opacity:0; transform:translateY(10px) scale(.96); transition:opacity .6s ease, transform .6s ease}
+    .headline.revealed h1{opacity:1; transform:translateY(-16vh) scale(1)}
 
     .label{position:absolute; top:6vh; left:50%; transform:translateX(-50%); font-family:'Cormorant Garamond', serif; letter-spacing:.35em; text-transform:uppercase; font-size:.9rem; opacity:.85}
     .cue{position:absolute; left:50%; bottom:24px; transform:translateX(-50%); font-size:.8rem; letter-spacing:.2em; text-transform:uppercase; opacity:.85}
 
-    /* Final panel: photo reveal */
+    /* Final panel: photo scales from small to full viewport */
     .photo-wrap{position:absolute; inset:0; display:grid; place-items:center; opacity:0; pointer-events:none}
-    .photo{max-width:min(92vw, 980px); width:100%; border-radius:1.25rem; box-shadow:0 20px 50px rgba(0,0,0,.45)}
-    .photo.low{filter:blur(18px) saturate(110%); transform:scale(1.03)}
+    .photo{max-width:min(92vw, 980px); max-height:88vh; width:100%; border-radius:1.25rem; box-shadow:0 20px 50px rgba(0,0,0,.45); transform-origin:center center; transform:scale(.6)}
+    .photo.low{filter:blur(18px) saturate(110%)}
     .photo.hi{opacity:0}
-
-    /* Fade-in on scroll */
-    .fade-in{opacity:0; transform:translateY(14px); transition:opacity .7s ease, transform .7s ease}
-    .fade-in.is-in{opacity:1; transform:none}
 
     /* Confetti canvas */
     #confetti{position:fixed; inset:0; pointer-events:none; z-index:9999}
@@ -116,7 +113,7 @@
       </div>
     </section>
 
-    <!-- PANEL 3: ENGAGED (scroll-driven headline + photo reveal) -->
+    <!-- PANEL 3: ENGAGED (photo scales first, then word + confetti) -->
     <section class="panel" id="final" aria-label="Engaged">
       <div class="label">III</div>
       <div class="center-wrap">
@@ -126,11 +123,11 @@
             <div class="cell"></div><div class="cell"></div><div class="cell"></div>
           </div>
         </div>
-        <div class="headline"><h1 id="finalWord">ENGAGED</h1></div>
         <div class="photo-wrap" id="finalPhotoWrap" aria-hidden="true">
-          <img class="photo low" id="finalPhotoLow" src="pen.jpg" alt="Announcement"/>
-          <img class="photo hi" id="finalPhotoHi" src="pen.jpg" alt="Announcement high-resolution"/>
+          <img class="photo low" id="finalPhotoLow" src="/pen.jpg" alt="Announcement"/>
+          <img class="photo hi" id="finalPhotoHi" src="/pen.jpg" alt="Announcement high-resolution"/>
         </div>
+        <div class="headline" id="finalHeadline"><h1 id="finalWord">ENGAGED</h1></div>
       </div>
     </section>
   </main>
@@ -155,49 +152,58 @@
       grids.forEach(function(g){ io.observe(g); });
     })();
 
-    // Final panel scroll-driven animation
+    // Final panel: photo scales first to full viewport, then word appears + confetti
     (function(){
       var panel = document.getElementById('final');
-      var word  = document.getElementById('finalWord');
+      var headline = document.getElementById('finalHeadline');
       var grid  = document.getElementById('finalNine');
       var gridMask = document.getElementById('finalGridMask');
       var wrap  = document.getElementById('finalPhotoWrap');
       var low   = document.getElementById('finalPhotoLow');
       var hi    = document.getElementById('finalPhotoHi');
-      var hiReady=false, fired=false, canRetrigger=false;
+      var hiReady=false, revealed=false;
 
       hi.addEventListener('load', function(){ hiReady=true; });
 
-      function lerp(a,b,t){ return a + (b-a)*t; }
-      function smoothstep(e0,e1,x){ var t=Math.min(1, Math.max(0, (x-e0)/(e1-e0))); return t*t*(3-2*t); }
+      function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+      function map(x,inMin,inMax,outMin,outMax){ return outMin + (clamp(x,inMin,inMax)-inMin) * (outMax-outMin) / (inMax-inMin); }
 
       function onScroll(){
         var r = panel.getBoundingClientRect();
         var vh = innerHeight || document.documentElement.clientHeight;
-        var p = Math.min(1, Math.max(0, (vh - r.top) / (r.height))); // 0..1 through the panel
+        var p = clamp((vh - r.top) / r.height, 0, 1); // 0..1 through the panel
 
-        // Word grows and moves upward as you scroll
-        var scale = lerp(0.65, 1.15, smoothstep(0.05, 0.7, p));
-        var y = lerp(0, -vh*0.24, smoothstep(0.25, 0.9, p));
-        word.style.transform = 'translate3d(0,'+y+'px,0) scale('+scale+')';
-
-        // Grid fades out & subtly shrinks
-        var gridOut = smoothstep(0.35, 0.75, p);
-        grid.style.opacity = String(1 - gridOut);
+        // 1) Grid fades out early
+        var gridOut = clamp(map(p, 0.10, 0.35, 0, 1), 0, 1);
+        var go = 1 - gridOut;
+        grid.style.opacity = go;
         grid.style.transform = 'scale(' + (1 - gridOut*0.06) + ')';
-        gridMask.style.opacity = String(1 - gridOut);
+        gridMask.style.opacity = go;
 
-        // Photo fades in; low-res first, then high-res
-        var photoIn = smoothstep(0.45, 0.9, p);
-        wrap.style.opacity = String(photoIn);
-        if(photoIn > 0 && !wrap.hasAttribute('aria-hidden')){} else { wrap.removeAttribute('aria-hidden'); }
+        // 2) Photo appears first, scales from 0.6 to 1.0 and centers
+        wrap.style.opacity = clamp(map(p, 0.12, 0.32, 0, 1), 0, 1);
+        var scale = map(p, 0.12, 0.70, 0.6, 1.0);
+        low.style.transform = 'scale(' + scale + ')';
+        hi.style.transform  = 'scale(' + scale + ')';
 
         // Crossfade low -> hi when hi is ready
-        if(hiReady){ hi.style.opacity = 1; low.style.opacity = Math.max(0, 1 - photoIn*1.2); low.style.filter = 'blur(' + (18 - 18*photoIn) + 'px)'; }
+        if(hiReady){
+          var hiAlpha = clamp(map(p, 0.35, 0.70, 0, 1), 0, 1);
+          hi.style.opacity = hiAlpha;
+          low.style.opacity = 1 - hiAlpha;
+          low.style.filter = 'blur(' + (18 - 18*hiAlpha) + 'px)';
+        }
 
-        // Confetti when fully revealed & hi-res ready; allow retrigger when user backs up
-        if(hiReady && p > 0.98 && !fired){ fired=true; confettiBurst(); }
-        if(p < 0.85 && fired){ fired=false; } // retrigger window
+        // 3) When photo is effectively full size, reveal headline near top + confetti
+        if(p > 0.78 && !revealed){
+          headline.classList.add('revealed');
+          confettiBurst();
+          revealed = true;
+        }
+        if(p < 0.65 && revealed){
+          headline.classList.remove('revealed');
+          revealed = false; // allow retrigger on slight scroll up
+        }
 
         requestAnimationFrame(onScroll);
       }
@@ -209,7 +215,7 @@
       var c=document.getElementById('confetti');
       c.hidden=false; c.width=innerWidth; c.height=innerHeight;
       var ctx=c.getContext('2d'); var pieces=[]; var colors=['#c8a2ff','#ff4db3','#ffd08a','#ffffff'];
-      for(var i=0;i<200;i++){
+      for(var i=0;i<220;i++){
         pieces.push({x:Math.random()*c.width, y:-20-Math.random()*c.height*.3, r:2+Math.random()*4, a:Math.random()*Math.PI, s:1+Math.random()*3, 
           col:colors[(Math.random()*colors.length)|0], tilt:Math.random()*Math.PI});
       }

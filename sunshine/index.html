@@ -79,7 +79,18 @@
 
     /* Mobile tweaks */
     @media (max-width:576px){ .label{top:3vh} }
-  </style>
+    /* Invisible chrome + photo-in-text effect */
+  .label, .cue { display: none !important; }
+  .grid-mask { display: none !important; }
+  .word-mask{
+    color: transparent; -webkit-text-fill-color: transparent;
+    background-image: url('pen.jpg'), url('pen.jpg'), url('pen.jpg'), url('pen.jpg');
+    background-size: 50% 50%, 50% 50%, 50% 50%, 50% 50%;
+    background-position: left top, right top, left bottom, right bottom;
+    background-repeat: no-repeat;
+    -webkit-background-clip: text; background-clip: text;
+  }
+</style>
   <link rel="preload" as="image" href="pen.jpg" />
   <link rel="preload" as="image" href="pen.jpg" />
 </head>
@@ -96,7 +107,7 @@
             <div class="cell"></div><div class="cell"></div><div class="cell"></div>
           </div>
         </div>
-        <div class="headline"><h1>WE</h1></div>
+        <div class="headline"><h1 class="word-mask">WE</h1></div>
         <div class="cue">Scroll</div>
       </div>
     </section>
@@ -111,7 +122,7 @@
             <div class="cell"></div><div class="cell"></div><div class="cell"></div>
           </div>
         </div>
-        <div class="headline"><h1>ARE</h1></div>
+        <div class="headline"><h1 class="word-mask">ARE</h1></div>
         <div class="cue">Scroll</div>
       </div>
     </section>
@@ -130,7 +141,7 @@
           <img$1src="pen.jpg" alt="Announcement"/>
           <img$1src="pen.jpg" alt="Announcement high-resolution"/>
         </div>
-        <div class="headline final-headline" id="finalHeadline"><h1 id="finalWord">ENGAGED</h1></div>
+        <div class="headline$1" id="finalHeadline"><h1 id="finalWord" class="word-mask">ENGAGED</h1></div>
       </div>
     </section>
   </main>

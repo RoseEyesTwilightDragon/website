@@ -1,246 +1,295 @@
 <!doctype html>
-<html lang="en">
+<html lang="en-GB">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Engagement — [Your Names]</title>
-  <meta name="description" content="Scroll past luxe 3×2 grids to reveal the news. Pretentious on purpose." />
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-  <style>
-    /* ——— Fonts & palette ——— */
-    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Poppins:wght@300;500;700&display=swap');
-    :root{
-      --ink:#f7ecff;         /* light text */
-      --bg-deep:#0b0613;     /* near-black plum */
-      --lav:#c8a2ff;         /* lavender accent */
-      --fuchsia:#ff4db3;     /* punch */
-      --gold:#ffd08a;        /* luxe */
-      --tile:rgba(255,255,255,.04); /* cell fill */
-    }
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Alex &amp; Sam — We’re engaged</title>
+  <meta name="description" content="Alex &amp; Sam are engaged — Kyoto, Japan · 12 Aug 2025. The story and a few favourite photos.">
+  <link rel="canonical" href="https://yourdomain.com/engaged">
+  <meta name="theme-color" content="#111111">
+  <meta name="robots" content="index,follow">
 
+  <!-- Open Graph (Facebook) -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Alex &amp; Sam — We’re engaged">
+  <meta property="og:description" content="Kyoto, Japan · 12 Aug 2025 · A few favourite moments.">
+  <meta property="og:url" content="https://yourdomain.com/engaged">
+  <meta property="og:site_name" content="Alex &amp; Sam">
+  <meta property="og:locale" content="en_GB">
+  <!-- Use a 1200×630 JPG under 8 MB for best Facebook cards -->
+  <meta property="og:image" content="https://yourdomain.com/og/engagement-card.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Alex &amp; Sam — engagement announcement card">
+
+  <!-- Optional: If you have a Facebook App ID, uncomment below -->
+  <!-- <meta property="fb:app_id" content="YOUR_FACEBOOK_APP_ID"> -->
+
+  <!-- Twitter (harmless to include) -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Alex &amp; Sam — We’re engaged">
+  <meta name="twitter:description" content="Kyoto, Japan · 12 Aug 2025">
+  <meta name="twitter:image" content="https://yourdomain.com/og/engagement-card.jpg">
+
+  <!-- Bootstrap 5.3 (CSS) -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-TODOhash-css" crossorigin="anonymous">
+
+  <style>
+    :root{
+      --bg:#ffffff;
+      --fg:#111111;
+      --muted:#6c757d;
+      --accent:#111111; /* timeless, monochrome */
+      --radius:1rem;
+    }
     html,body{height:100%}
     body{
-      margin:0; color:var(--ink);
-      font-family:'Poppins', system-ui, sans-serif; letter-spacing:.01em;
-      background-color: var(--bg-deep);
-      scroll-snap-type:y mandatory;
-      overscroll-behavior-y:none;
+      background:var(--bg);
+      color:var(--fg);
+      -webkit-font-smoothing:antialiased;
+      text-rendering:optimizeLegibility;
     }
-
-    /* Global background (fixed) so panels blend seamlessly */
-    .bg-global{position:fixed; inset:0; z-index:-1;
-      background:
-        radial-gradient(50% 40% at 20% 20%, rgba(200,162,255,.22), transparent 70%),
-        radial-gradient(40% 45% at 80% 25%, rgba(255,77,179,.18), transparent 70%),
-        radial-gradient(60% 50% at 50% 80%, rgba(255,208,138,.18), transparent 70%),
-        linear-gradient(180deg, #13091d 0%, #0b0613 100%);
-      filter: saturate(110%) contrast(105%);
-      animation: pan 18s linear infinite;
+    /* Keep everything above the fold on typical laptop screens */
+    .vh-fit{
+      min-height:100dvh;
+      display:flex;
+      align-items:center;
     }
-    @keyframes pan{ 0%{ background-position:0 0, 0 0, 0 0, 0 0 } 50%{ background-position:10% 6%, -8% 4%, 0% 12%, 0 0 } 100%{ background-position:0 0, 0 0, 0 0, 0 0 } }
-
-    /* Panels */
-    .panel{min-height:100svh; position:relative; scroll-snap-align:start; display:flex; align-items:center; justify-content:center}
-
-    .center-wrap{position:relative; z-index:1; width:min(92vw, 980px); padding:clamp(16px, 3vw, 40px)}
-
-    /* 3×2 grid: seamless (no gaps); rounded outer mask */
-    .grid-mask{border-radius:1.25rem; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,.35)}
-    .nine{position:relative; display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(2,1fr); gap:0; width:100%; aspect-ratio:3/2}
-    .cell{background:var(--tile); min-height:90px; opacity:0; transform:translateY(22px)}
-
-    /* Staggered rise-in for cells */
-    @keyframes rise{from{opacity:0; transform:translateY(22px)} to{opacity:1; transform:none}}
-    .nine.in .cell{animation:rise .7s cubic-bezier(.2,.7,.2,1) both}
-    .nine.in .cell:nth-child(1){animation-delay:.04s}
-    .nine.in .cell:nth-child(2){animation-delay:.10s}
-    .nine.in .cell:nth-child(3){animation-delay:.16s}
-    .nine.in .cell:nth-child(4){animation-delay:.22s}
-    .nine.in .cell:nth-child(5){animation-delay:.28s}
-    .nine.in .cell:nth-child(6){animation-delay:.34s}
-
-    /* Headline overlays the grid (doesn't occupy a cell) */
-    .headline{position:absolute; inset:0; display:grid; place-items:center; pointer-events:none}
-    .headline h1{font-family:'Cormorant Garamond', serif; font-weight:700; letter-spacing:.22em; text-transform:uppercase; font-size:clamp(2rem, 8vw, 5.2rem); line-height:1; text-shadow:0 12px 34px rgba(0,0,0,.55); opacity:1; transform:none}
-    .final-headline h1{opacity:0; transform:translateY(10px) scale(.96); transition:opacity .6s ease, transform .6s ease}
-    .final-headline.revealed h1{opacity:1; transform:translateY(-16vh) scale(1)}
-
-    .label{position:absolute; top:6vh; left:50%; transform:translateX(-50%); font-family:'Cormorant Garamond', serif; letter-spacing:.35em; text-transform:uppercase; font-size:.9rem; opacity:.85}
-    .cue{position:absolute; left:50%; bottom:24px; transform:translateX(-50%); font-size:.8rem; letter-spacing:.2em; text-transform:uppercase; opacity:.85}
-
-    /* Final panel: photo scales from small to full viewport */
-    .photo-wrap{position:absolute; inset:0; display:grid; place-items:center; opacity:0; pointer-events:none}
-    .photo{max-width:min(92vw, 980px); max-height:88vh; width:100%; border-radius:1.25rem; box-shadow:0 20px 50px rgba(0,0,0,.45); transform-origin:center center; transform:scale(.6)}
-    .photo.low{filter:blur(18px) saturate(110%)}
-    .photo.hi{opacity:0}
-
-    /* Confetti canvas */
-    #confetti{position:fixed; inset:0; pointer-events:none; z-index:9999}
-
-    /* Mobile tweaks */
-    @media (max-width:576px){ .label{top:3vh} }
-    /* Invisible chrome + photo-in-text effect */
-  .label, .cue { display: none !important; }
-  .grid-mask { display: none !important; }
-  .word-mask{
-    color: transparent; -webkit-text-fill-color: transparent;
-    background-image: url('pen.jpg'), url('pen.jpg'), url('pen.jpg'), url('pen.jpg');
-    background-size: 50% 50%, 50% 50%, 50% 50%, 50% 50%;
-    background-position: left top, right top, left bottom, right bottom;
-    background-repeat: no-repeat;
-    -webkit-background-clip: text; background-clip: text;
-  }
-</style>
-  <link rel="preload" as="image" href="pen.jpg" />
-  <link rel="preload" as="image" href="pen.jpg" />
+    .brand{
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      font-size:.875rem;
+      color:var(--muted);
+    }
+    .display-title{
+      font-weight:600;
+      line-height:1.1;
+    }
+    .badge-soft{
+      border:1px solid #dee2e6;
+      background:#f8f9fa;
+      color:#212529;
+    }
+    .hero-img{
+      border-radius:var(--radius);
+      width:100%;
+      height:auto;
+      box-shadow:0 10px 30px rgba(0,0,0,.08);
+      opacity:0;
+      transform:translateY(8px);
+      transition:opacity .6s ease, transform .6s ease;
+    }
+    .hero-img.is-visible{opacity:1; transform:none;}
+    .btn-minimal{
+      border:1px solid #ced4da;
+      background:#fff;
+      color:#111;
+      border-radius:999px;
+      padding:.5rem 1rem;
+    }
+    .btn-minimal:focus{outline:3px solid #000; outline-offset:2px}
+    .gallery-grid{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:.5rem;
+    }
+    .gallery-grid img{border-radius:.5rem; width:100%; height:auto}
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce){
+      .hero-img{transition:none}
+    }
+    /* High-contrast focus */
+    :focus-visible{
+      outline:3px solid #000; outline-offset:2px;
+    }
+  </style>
 </head>
 <body>
-  <div class="bg-global" aria-hidden="true"></div>
-  <main>
-    <!-- PANEL 1: WE -->
-    <section class="panel" aria-label="We">
-      <div class="label">I</div>
-      <div class="center-wrap">
-        <div class="grid-mask">
-          <div class="nine" data-animate="cells">
-            <div class="cell"></div><div class="cell"></div><div class="cell"></div>
-            <div class="cell"></div><div class="cell"></div><div class="cell"></div>
-          </div>
-        </div>
-        <div class="headline"><h1 class="word-mask">WE</h1></div>
-        <div class="cue">Scroll</div>
-      </div>
-    </section>
 
-    <!-- PANEL 2: ARE -->
-    <section class="panel" aria-label="Are">
-      <div class="label">II</div>
-      <div class="center-wrap">
-        <div class="grid-mask">
-          <div class="nine" data-animate="cells">
-            <div class="cell"></div><div class="cell"></div><div class="cell"></div>
-            <div class="cell"></div><div class="cell"></div><div class="cell"></div>
-          </div>
-        </div>
-        <div class="headline"><h1 class="word-mask">ARE</h1></div>
-        <div class="cue">Scroll</div>
-      </div>
-    </section>
+  <main class="container py-3 vh-fit">
+    <div class="row g-4 g-lg-5 align-items-center">
+      <!-- Left: Copy -->
+      <div class="col-12 col-lg-6">
+        <div class="brand mb-3">Alex &amp; Sam</div>
 
-    <!-- PANEL 3: ENGAGED (photo scales first, then word + confetti) -->
-    <section class="panel" id="final" aria-label="Engaged">
-      <div class="label">III</div>
-      <div class="center-wrap">
-        <div class="grid-mask" id="finalGridMask">
-          <div class="nine" id="finalNine" data-animate="cells">
-            <div class="cell"></div><div class="cell"></div><div class="cell"></div>
-            <div class="cell"></div><div class="cell"></div><div class="cell"></div>
-          </div>
+        <h1 class="display-4 display-title mb-3">We’re engaged</h1>
+
+        <div class="d-flex gap-2 mb-4">
+          <span class="badge badge-soft rounded-pill px-3 py-2">Kyoto, Japan</span>
+          <span class="badge badge-soft rounded-pill px-3 py-2">12 Aug 2025</span>
         </div>
-        <div class="photo-wrap" id="finalPhotoWrap" aria-hidden="true">
-          <img$1src="pen.jpg" alt="Announcement"/>
-          <img$1src="pen.jpg" alt="Announcement high-resolution"/>
+
+        <p class="text-secondary mb-4" style="max-width:42ch">
+          A quiet moment, a simple question, and the easiest “yes.” Here’s the story and a few of our favourite photographs.
+        </p>
+
+        <!-- Micro-CTA row (modals; no scrolling needed) -->
+        <div class="d-flex flex-wrap gap-2">
+          <button class="btn btn-minimal" data-bs-toggle="modal" data-bs-target="#storyModal" aria-controls="storyModal" aria-label="Open our story">
+            Our story
+          </button>
+          <button class="btn btn-minimal" data-bs-toggle="modal" data-bs-target="#timelineModal" aria-controls="timelineModal" aria-label="Open timeline">
+            Timeline
+          </button>
+          <button class="btn btn-minimal" data-bs-toggle="modal" data-bs-target="#photosModal" aria-controls="photosModal" aria-label="Open photo gallery">
+            Photos
+          </button>
         </div>
-        <div class="headline$1" id="finalHeadline"><h1 id="finalWord" class="word-mask">ENGAGED</h1></div>
       </div>
-    </section>
+
+      <!-- Right: Hero image -->
+      <div class="col-12 col-lg-6">
+        <img
+          src="/img/hero.webp"
+          alt="Alex and Sam on a quiet Kyoto street after the proposal"
+          width="1400" height="1750"
+          class="hero-img"
+          loading="eager"
+          fetchpriority="high">
+      </div>
+    </div>
   </main>
 
-  <canvas id="confetti" width="0" height="0" hidden></canvas>
+  <!-- Story Modal -->
+  <div class="modal fade" id="storyModal" tabindex="-1" aria-labelledby="storyTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content rounded-4">
+        <div class="modal-header">
+          <h2 class="modal-title fs-4" id="storyTitle">How it happened</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close story"></button>
+        </div>
+        <div class="modal-body">
+          <p>
+            We wandered through Kyoto in the golden hour and found a quiet corner. A few words, a ring, and the easiest “yes” either of us has ever said.
+          </p>
+          <p class="mb-0 text-secondary">Simple, private, and exactly right for us.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Timeline Modal -->
+  <div class="modal fade" id="timelineModal" tabindex="-1" aria-labelledby="timelineTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content rounded-4">
+        <div class="modal-header">
+          <h2 class="modal-title fs-4" id="timelineTitle">Timeline</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close timeline"></button>
+        </div>
+        <div class="modal-body">
+          <ol class="list-group list-group-numbered">
+            <li class="list-group-item">We met, we laughed, and never quite stopped.</li>
+            <li class="list-group-item">A trip we’d talked about forever — Kyoto.</li>
+            <li class="list-group-item">A quiet street, a question asked.</li>
+            <li class="list-group-item">A yes, a promise, and a very happy walk home.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Photos Modal (lightbox-style) -->
+  <div class="modal fade" id="photosModal" tabindex="-1" aria-labelledby="photosTitle" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content rounded-4">
+        <div class="modal-header">
+          <h2 class="modal-title fs-4" id="photosTitle">Photos</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close photos"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Simple grid; clicking swaps the large preview; arrow keys navigate -->
+          <div class="row g-4">
+            <div class="col-12 col-lg-7">
+              <figure class="mb-0">
+                <img id="previewImg" src="/img/g1.webp" alt="Selected engagement photo" class="w-100 rounded-4" width="1600" height="1000" loading="lazy">
+                <figcaption class="mt-2 text-secondary small">Use ← → keys to browse</figcaption>
+              </figure>
+            </div>
+            <div class="col-12 col-lg-5">
+              <div class="gallery-grid" id="thumbGrid" role="list">
+                <img src="/img/g1.webp" alt="Gallery image 1" width="600" height="400" role="listitem" tabindex="0" data-index="0" loading="lazy">
+                <img src="/img/g2.webp" alt="Gallery image 2" width="600" height="400" role="listitem" tabindex="0" data-index="1" loading="lazy">
+                <img src="/img/g3.webp" alt="Gallery image 3" width="600" height="400" role="listitem" tabindex="0" data-index="2" loading="lazy">
+                <img src="/img/g4.webp" alt="Gallery image 4" width="600" height="400" role="listitem" tabindex="0" data-index="3" loading="lazy">
+                <img src="/img/g5.webp" alt="Gallery image 5" width="600" height="400" role="listitem" tabindex="0" data-index="4" loading="lazy">
+                <img src="/img/g6.webp" alt="Gallery image 6" width="600" height="400" role="listitem" tabindex="0" data-index="5" loading="lazy">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer justify-content-between">
+          <button type="button" class="btn btn-outline-dark" id="prevBtn" aria-label="Previous photo">Previous</button>
+          <button type="button" class="btn btn-outline-dark" id="nextBtn" aria-label="Next photo">Next</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap 5.3 (JS Bundle) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-TODOhash-js" crossorigin="anonymous"></script>
 
   <script>
-    // Always start at top on refresh / bfcache restore
+    // Reveal hero image after load (reduced-motion respected by CSS)
+    window.addEventListener('load', function(){
+      const hero = document.querySelector('.hero-img');
+      if(hero) hero.classList.add('is-visible');
+    });
+
+    // Simple lightbox behaviour for Photos modal
     (function(){
-      if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
-      window.scrollTo(0,0);
-      window.addEventListener('pageshow', function(e){ if (e.persisted) window.scrollTo(0,0); });
-    })();
+      const images = [
+        '/img/g1.webp','/img/g2.webp','/img/g3.webp',
+        '/img/g4.webp','/img/g5.webp','/img/g6.webp'
+      ];
+      let current = 0;
 
-    // Stagger cell animations when grids enter
-    (function(){
-      var grids = document.querySelectorAll('.nine[data-animate="cells"]');
-      if(!('IntersectionObserver' in window)){ grids.forEach(function(g){ g.classList.add('in'); }); return; }
-      var io = new IntersectionObserver(function(entries){
-        entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
-      },{threshold:0.25});
-      grids.forEach(function(g){ io.observe(g); });
-    })();
+      const preview = document.getElementById('previewImg');
+      const grid = document.getElementById('thumbGrid');
+      const prevBtn = document.getElementById('prevBtn');
+      const nextBtn = document.getElementById('nextBtn');
 
-    // Final panel: photo scales first to full viewport, then word appears + confetti
-    (function(){
-      var panel = document.getElementById('final');
-      var headline = document.getElementById('finalHeadline');
-      var grid  = document.getElementById('finalNine');
-      var gridMask = document.getElementById('finalGridMask');
-      var wrap  = document.getElementById('finalPhotoWrap');
-      var low   = document.getElementById('finalPhotoLow');
-      var hi    = document.getElementById('finalPhotoHi');
-      var hiReady=false, revealed=false;
-
-      hi.addEventListener('load', function(){ hiReady=true; });
-
-      function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
-      function map(x,inMin,inMax,outMin,outMax){ return outMin + (clamp(x,inMin,inMax)-inMin) * (outMax-outMin) / (inMax-inMin); }
-
-      function onScroll(){
-        var r = panel.getBoundingClientRect();
-        var vh = innerHeight || document.documentElement.clientHeight;
-        var p = clamp((vh - r.top) / r.height, 0, 1); // 0..1 through the panel
-
-        // 1) Grid fades out early
-        var gridOut = clamp(map(p, 0.10, 0.35, 0, 1), 0, 1);
-        var go = 1 - gridOut;
-        grid.style.opacity = go;
-        grid.style.transform = 'scale(' + (1 - gridOut*0.06) + ')';
-        gridMask.style.opacity = go;
-
-        // 2) Photo appears first, scales from 0.6 to 1.0 and centers
-        wrap.style.opacity = clamp(map(p, 0.12, 0.32, 0, 1), 0, 1);
-        if (wrap.hasAttribute('aria-hidden') && p > 0.12) { wrap.removeAttribute('aria-hidden'); }
-        var scale = map(p, 0.12, 0.70, 0.6, 1.0);
-        low.style.transform = 'scale(' + scale + ')';
-        hi.style.transform  = 'scale(' + scale + ')';
-
-        // Crossfade low -> hi when hi is ready
-        if(hiReady){
-          var hiAlpha = clamp(map(p, 0.35, 0.70, 0, 1), 0, 1);
-          hi.style.opacity = hiAlpha;
-          low.style.opacity = 1 - hiAlpha;
-          low.style.filter = 'blur(' + (18 - 18*hiAlpha) + 'px)';
-        }
-
-        // 3) When photo is effectively full size, reveal headline near top + confetti
-        if(p > 0.78 && !revealed){
-          headline.classList.add('revealed');
-          confettiBurst();
-          revealed = true;
-        }
-        if(p < 0.65 && revealed){
-          headline.classList.remove('revealed');
-          revealed = false; // allow retrigger on slight scroll up
-        }
-
-        requestAnimationFrame(onScroll);
+      function show(i){
+        current = (i + images.length) % images.length;
+        preview.src = images[current];
       }
-      requestAnimationFrame(onScroll);
-    })();
 
-    // Confetti
-    function confettiBurst(){
-      var c=document.getElementById('confetti');
-      c.hidden=false; c.width=innerWidth; c.height=innerHeight;
-      var ctx=c.getContext('2d'); var pieces=[]; var colors=['#c8a2ff','#ff4db3','#ffd08a','#ffffff'];
-      for(var i=0;i<220;i++){
-        pieces.push({x:Math.random()*c.width, y:-20-Math.random()*c.height*.3, r:2+Math.random()*4, a:Math.random()*Math.PI, s:1+Math.random()*3, 
-          col:colors[(Math.random()*colors.length)|0], tilt:Math.random()*Math.PI});
+      if(grid){
+        grid.addEventListener('click', (e)=>{
+          const t = e.target;
+          if(t && t.dataset && t.dataset.index){
+            show(parseInt(t.dataset.index,10));
+          }
+        });
+        grid.addEventListener('keydown', (e)=>{
+          if(e.key === 'Enter' || e.key === ' ') {
+            const t = e.target;
+            if(t && t.dataset && t.dataset.index){
+              show(parseInt(t.dataset.index,10));
+              e.preventDefault();
+            }
+          }
+        });
       }
-      (function tick(){
-        ctx.clearRect(0,0,c.width,c.height);
-        pieces.forEach(function(p){ p.y+=p.s*6; p.x+=Math.sin(p.a+=0.05)*2; p.tilt+=0.06; ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.tilt); ctx.fillStyle=p.col; ctx.fillRect(-p.r,-p.r,p.r*2,p.r*2); ctx.restore(); });
-        if(pieces.some(function(p){ return p.y < c.height+20;})) requestAnimationFrame(tick); else { c.hidden=true; ctx.clearRect(0,0,c.width,c.height); }
-      })();
-      window.addEventListener('resize', function(){ c.width=innerWidth; c.height=innerHeight; }, { once:true });
-    }
+      if(prevBtn) prevBtn.addEventListener('click', ()=> show(current-1));
+      if(nextBtn) nextBtn.addEventListener('click', ()=> show(current+1));
+
+      // Arrow key navigation only while modal is open
+      const photosModalEl = document.getElementById('photosModal');
+      if(photosModalEl){
+        photosModalEl.addEventListener('shown.bs.modal', ()=>{
+          document.addEventListener('keydown', keyNav);
+        });
+        photosModalEl.addEventListener('hidden.bs.modal', ()=>{
+          document.removeEventListener('keydown', keyNav);
+        });
+      }
+      function keyNav(e){
+        if(e.key === 'ArrowLeft') show(current-1);
+        if(e.key === 'ArrowRight') show(current+1);
+      }
+    })();
   </script>
 </body>
 </html>

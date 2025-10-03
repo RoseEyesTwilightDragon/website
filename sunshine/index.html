@@ -357,16 +357,7 @@
     if (!insideOverlay && !insideExpander && expander && expander.classList.contains('open')) {
       closePanel(); current = null;
     }
-  });
-</script>
-<!-- PATCH-TL VIEWER -->
-<div id="tl-viewer" hidden
-     style="position:fixed; inset:0; background:rgba(0,0,0,.9); display:grid; place-items:center; z-index:999;">
-  <img id="tl-viewer-img" src="" alt="Timeline photo" style="max-width:92vw; max-height:92vh; object-fit:contain;"/>
-</div>
-
-<script>
-  // Timeline lightbox
+      // Timeline lightbox
   (function(){
     const viewer = document.getElementById('tl-viewer');
     const img    = document.getElementById('tl-viewer-img');
@@ -398,8 +389,13 @@
       if(e.key === 'ArrowRight') openAt(Math.min(items.length-1, idx+1));
       if(e.key === 'ArrowLeft')  openAt(Math.max(0, idx-1));
     });
-  })();
+  });
 </script>
+<!-- PATCH-TL VIEWER -->
+<div id="tl-viewer" hidden
+     style="position:fixed; inset:0; background:rgba(0,0,0,.9); display:grid; place-items:center; z-index:999;">
+  <img id="tl-viewer-img" src="" alt="Timeline photo" style="max-width:92vw; max-height:92vh; object-fit:contain;"/>
+</div>
 
 </body>
 </html>

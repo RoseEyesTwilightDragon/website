@@ -198,10 +198,17 @@
   padding-top:34px;         
 }
 
-.tl-line{
-  position:absolute; left:0; right:0;
-  top:0; height:2px;  /* centre line vertically */
-  background:#ddd; border-radius:2px;
+/* TL-LINE: SVG styling */
+.tl-line-svg{
+  position:absolute; left:0; right:0; top:0;
+  height:2px; width:100%;
+}
+.tl-line-svg line{
+  stroke:#111;
+  stroke-width:.6;                 /* sub-pixel hairline */
+  shape-rendering:crispEdges;      /* snap to pixel grid */
+  vector-effect:non-scaling-stroke;/* keep thickness constant */
+  opacity:.9;
 }
 
 .tl-item{
@@ -328,6 +335,11 @@
         <!-- PATCH-TL MARKUP -->
           <h3 class="tl-h">Timeline</h3>
           <div class="tl tl-top" id="tl">
+            <!-- TL-LINE: SVG hairline -->
+<svg class="tl-line-svg" viewBox="0 0 100 2" preserveAspectRatio="none" aria-hidden="true">
+  <line x1="0" y1="1" x2="100" y2="1" />
+</svg>
+
             <div class="tl-line" aria-hidden="true"></div>
           
             <!-- ITEM -->

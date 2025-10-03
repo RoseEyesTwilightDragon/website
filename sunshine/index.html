@@ -163,11 +163,12 @@
       <section class="hero" aria-label="Hero photograph">
         <img src="pen.jpg" alt="Alex and Sam just after the proposal in Kyoto" width="1920" height="1080" loading="eager" fetchpriority="high">
         <!-- Seam toolbar placed on the hero’s bottom edge (across the seam) -->
-        <div class="seam" role="toolbar" aria-label="More information controls">
-          <button class="chip" data-target="story">Story</button>
-          <button class="chip" data-target="timeline">Timeline</button>
-          <button class="chip" data-target="details">Details</button>
-        </div>
+      <!-- PATCH: SEAM OVERLAY -->
+      <div class="seam-overlay" role="toolbar" aria-label="More information">
+        <button class="seam-btn" data-target="story">Story</button>
+        <button class="seam-btn" data-target="timeline">Timeline</button>
+        <button class="seam-btn" data-target="details">Details</button>
+      </div>
       </section>
 
       <!-- EXPANDER (animated gap) -->

@@ -220,7 +220,17 @@
       .tl-dot{ top:28px; }
       .tl-thumb{ border-radius:6px; }
     }
-
+#tl-viewer{
+  position:fixed; inset:0;
+  background:rgba(0,0,0,.9);
+  display:grid; place-items:center;
+  z-index:999;
+}
+#tl-viewer img{
+  max-width:92vw; max-height:92vh; object-fit:contain;
+}
+/* Hidden must beat any inline display */
+#tl-viewer[hidden]{ display:none !important; }
 
   </style>
 </head>
@@ -391,17 +401,7 @@
     });
   })();
   /* TL VIEWER — hidden by default, shows when JS removes [hidden] */
-#tl-viewer{
-  position:fixed; inset:0;
-  background:rgba(0,0,0,.9);
-  display:grid; place-items:center;
-  z-index:999;
-}
-#tl-viewer img{
-  max-width:92vw; max-height:92vh; object-fit:contain;
-}
-/* Hidden must beat any inline display */
-#tl-viewer[hidden]{ display:none !important; }
+
 
 </script>
 <!-- FIX: viewer starts hidden; styles moved to CSS -->

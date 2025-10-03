@@ -108,6 +108,13 @@
 
     /* Expander gap between hero and thumbs (slides thumbs down when opened) */
     /* STEP-04 EXPANDER-TIGHT */
+    /* TL-CENTER: panel spans full width and centres */
+#panel-timeline{
+  grid-column: 1 / -1;   /* span all columns of .expander > .content */
+  justify-self: center;  /* centre the panel within the expander grid */
+  width: 100%;
+}
+
     .expander{
       overflow:hidden;
       max-height:0;

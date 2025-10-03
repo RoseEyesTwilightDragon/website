@@ -224,12 +224,17 @@
     0 0 0 8px rgba(0,0,0,.08); }
 
 
-/* Thumbs are 16:9 mini images */
+/* TL-FREESIZE: no bars, variable height */
 .tl-thumb{
-  width:100%; aspect-ratio:16/9; object-fit:cover; display:block;
+  width:100%;
+  height:auto;            /* drop aspect-ratio */
+  object-fit:contain;     /* image untouched */
+  background:transparent;
+  display:block;
   border-radius:8px;
   box-shadow:0 8px 18px rgba(0,0,0,.08);
 }
+
 
 .tl-date{
   font:500 .9rem/1 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;

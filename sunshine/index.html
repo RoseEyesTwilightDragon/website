@@ -231,6 +231,15 @@
 }
 /* Hidden must beat any inline display */
 #tl-viewer[hidden]{ display:none !important; }
+#tl-viewer{
+  position:fixed; inset:0;
+  background:rgba(0,0,0,.9);
+  display:grid; place-items:center;
+  z-index:999;
+}
+#tl-viewer img{ max-width:92vw; max-height:92vh; object-fit:contain; }
+/* must override any display */
+#tl-viewer[hidden]{ display:none !important; }
 
   </style>
 </head>
@@ -404,5 +413,11 @@
 
 
 </script>
+  <!-- TL VIEWER (clean, hidden by default) -->
+<div id="tl-viewer" hidden>
+  <img id="tl-viewer-img" alt="Timeline photo">
+</div>
+
+
 </body>
 </html>

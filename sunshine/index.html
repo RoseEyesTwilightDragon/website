@@ -390,13 +390,26 @@
       if (e.key === 'ArrowLeft')  openAt(Math.max(0, idx-1));
     });
   })();
-</script>
+  /* TL VIEWER — hidden by default, shows when JS removes [hidden] */
+#tl-viewer{
+  position:fixed; inset:0;
+  background:rgba(0,0,0,.9);
+  display:grid; place-items:center;
+  z-index:999;
+}
+#tl-viewer img{
+  max-width:92vw; max-height:92vh; object-fit:contain;
+}
+/* Hidden must beat any inline display */
+#tl-viewer[hidden]{ display:none !important; }
 
-<!-- PATCH-TL VIEWER -->
-<div id="tl-viewer" hidden
-     style="position:fixed; inset:0; background:rgba(0,0,0,.9); display:grid; place-items:center; z-index:999;">
-  <img id="tl-viewer-img" src="" alt="Timeline photo" style="max-width:92vw; max-height:92vh; object-fit:contain;"/>
+</script>
+<!-- FIX: viewer starts hidden; styles moved to CSS -->
+<div id="tl-viewer" hidden>
+  <img id="tl-viewer-img" src="" alt="Timeline photo" />
 </div>
+
+
 
 </body>
 </html>

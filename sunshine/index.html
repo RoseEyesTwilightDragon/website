@@ -4,290 +4,246 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Alex &amp; Sam — We’re engaged</title>
-  <meta name="description" content="Alex &amp; Sam are engaged — Kyoto, Japan · 12 Aug 2025. The story and a few favourite photos.">
+  <meta name="description" content="Alex &amp; Sam are engaged — Kyoto, Japan · 12 Aug 2025.">
   <link rel="canonical" href="https://yourdomain.com/engaged">
   <meta name="theme-color" content="#111111">
-  <meta name="robots" content="index,follow">
 
-  <!-- Open Graph (Facebook) -->
+  <!-- Open Graph (Facebook-first) -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="Alex &amp; Sam — We’re engaged">
-  <meta property="og:description" content="Kyoto, Japan · 12 Aug 2025 · A few favourite moments.">
+  <meta property="og:description" content="Kyoto, Japan · 12 Aug 2025">
   <meta property="og:url" content="https://yourdomain.com/engaged">
   <meta property="og:site_name" content="Alex &amp; Sam">
   <meta property="og:locale" content="en_GB">
-  <!-- Use a 1200×630 JPG under 8 MB for best Facebook cards -->
-  <meta property="og:image" content="https://yourdomain.com/og/engagement-card.jpg">
+  <meta property="og:image" content="pen.jpg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Alex &amp; Sam — engagement announcement card">
-
-  <!-- Optional: If you have a Facebook App ID, uncomment below -->
-  <!-- <meta property="fb:app_id" content="YOUR_FACEBOOK_APP_ID"> -->
-
-  <!-- Twitter (harmless to include) -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Alex &amp; Sam — We’re engaged">
-  <meta name="twitter:description" content="Kyoto, Japan · 12 Aug 2025">
-  <meta name="twitter:image" content="https://yourdomain.com/og/engagement-card.jpg">
-
-  <!-- Bootstrap 5.3 (CSS) -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-TODOhash-css" crossorigin="anonymous">
+  <meta property="og:image:alt" content="Engagement announcement for Alex &amp; Sam">
 
   <style>
     :root{
-      --bg:#ffffff;
-      --fg:#111111;
-      --muted:#6c757d;
-      --accent:#111111; /* timeless, monochrome */
-      --radius:1rem;
+      --bg:#fff; --fg:#111; --muted:#6b6b6b; --ring:#000;
+      --gap:12px;             /* space between items */
+      --expander-max:160px;   /* expanded gap height */
+      --radius:14px;
     }
-    html,body{height:100%}
-    body{
-      background:var(--bg);
-      color:var(--fg);
-      -webkit-font-smoothing:antialiased;
-      text-rendering:optimizeLegibility;
-    }
-    /* Keep everything above the fold on typical laptop screens */
-    .vh-fit{
-      min-height:100dvh;
+    html,body{height:100%; margin:0; background:var(--bg); color:var(--fg); -webkit-font-smoothing:antialiased}
+    /* Outer frame that ALWAYS fits on screen:
+       natural total height ≈ 0.75 * width for four 16:9 tiles (1 large + 3 small).
+       Constrain width to <= 133.333vh to avoid vertical overflow. */
+    .frame{
+      width:min(100vw, 133.333dvh);
+      margin-inline:auto;
+      height:100dvh;
       display:flex;
       align-items:center;
+      justify-content:center;
+      padding:clamp(8px, 2vw, 24px);
+      box-sizing:border-box;
     }
-    .brand{
-      letter-spacing:.08em;
-      text-transform:uppercase;
-      font-size:.875rem;
-      color:var(--muted);
-    }
-    .display-title{
-      font-weight:600;
-      line-height:1.1;
-    }
-    .badge-soft{
-      border:1px solid #dee2e6;
-      background:#f8f9fa;
-      color:#212529;
-    }
-    .hero-img{
-      border-radius:var(--radius);
+    .stack{
       width:100%;
-      height:auto;
-      box-shadow:0 10px 30px rgba(0,0,0,.08);
-      opacity:0;
-      transform:translateY(8px);
-      transition:opacity .6s ease, transform .6s ease;
-    }
-    .hero-img.is-visible{opacity:1; transform:none;}
-    .btn-minimal{
-      border:1px solid #ced4da;
-      background:#fff;
-      color:#111;
-      border-radius:999px;
-      padding:.5rem 1rem;
-    }
-    .btn-minimal:focus{outline:3px solid #000; outline-offset:2px}
-    .gallery-grid{
       display:grid;
-      grid-template-columns:repeat(3,1fr);
-      gap:.5rem;
+      grid-template-rows:auto auto auto; /* hero, expander, thumbs */
+      gap:var(--gap);
     }
-    .gallery-grid img{border-radius:.5rem; width:100%; height:auto}
-    /* Reduced motion */
+
+    /* 16:9 boxes using aspect-ratio */
+    .hero, .thumb{
+      position:relative;
+      overflow:hidden;
+      border-radius:var(--radius);
+      background:#eee;
+      box-shadow:0 10px 28px rgba(0,0,0,.08);
+      isolation:isolate;
+    }
+    .hero{ aspect-ratio:16 / 9; }
+    .thumbs{ display:grid; grid-template-columns:repeat(3, 1fr); gap:var(--gap); }
+    .thumb{ aspect-ratio:16 / 9; }
+
+    .hero img, .thumb img{
+      width:100%; height:100%; object-fit:cover; display:block;
+      filter:saturate(1.02);
+      transform:scale(1.005);
+      transition:transform .6s ease, opacity .6s ease;
+      opacity:0;
+    }
+    .ready .hero img, .ready .thumb img{ opacity:1; transform:none; }
     @media (prefers-reduced-motion: reduce){
-      .hero-img{transition:none}
+      .hero img, .thumb img{ transition:none }
     }
-    /* High-contrast focus */
-    :focus-visible{
-      outline:3px solid #000; outline-offset:2px;
+
+    /* Seam toolbar (sits on the line between hero and thumbs) */
+    .seam{
+      position:absolute;
+      left:50%;
+      bottom:calc(-.5rem); /* dip across the seam */
+      translate:-50% 50%;
+      background:#fff;
+      border:1px solid #e5e5e5;
+      border-radius:999px;
+      padding:.35rem .5rem;
+      display:flex; gap:.25rem;
+      box-shadow:0 6px 20px rgba(0,0,0,.08);
+      z-index:3;
+    }
+    .chip{
+      border:none; background:#fff; color:#111; font:600 0.9rem/1.1 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      padding:.5rem .8rem; border-radius:999px; cursor:pointer;
+    }
+    .chip:focus-visible{ outline:3px solid var(--ring); outline-offset:2px; }
+
+    /* Expander gap between hero and thumbs (slides thumbs down when opened) */
+    .expander{
+      overflow:hidden;
+      max-height:0;
+      border-radius:calc(var(--radius) - 6px);
+      background:#fafafa;
+      border:1px solid #eee;
+      padding:0 14px;
+      transition:max-height .45s ease, padding .45s ease, border-color .45s ease, background .45s ease;
+    }
+    .expander.open{
+      max-height:var(--expander-max);
+      padding:12px 14px;
+      border-color:#e8e8e8;
+    }
+    .expander > .content{
+      display:grid;
+      grid-template-columns:1fr 1fr 1fr;
+      gap:16px;
+      align-items:start;
+      font:400 0.95rem/1.4 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color:#333;
+    }
+    .expander h3{ margin:.2rem 0 .4rem; font-size:1rem }
+    .muted{ color:var(--muted) }
+
+    /* Accessibility: keep everything keyboardable */
+    a, button{ -webkit-tap-highlight-color:transparent }
+
+    /* Small screens: keep no-scroll guarantee by narrowing inner width (via frame width rule).
+       On very narrow phones, reduce gap & text size inside expander. */
+    @media (max-width: 520px){
+      :root{ --gap:10px; --expander-max:180px }
+      .chip{ font-size:.85rem; padding:.45rem .7rem }
+      .expander > .content{ grid-template-columns:1fr; gap:10px }
     }
   </style>
 </head>
 <body>
 
-  <main class="container py-3 vh-fit">
-    <div class="row g-4 g-lg-5 align-items-center">
-      <!-- Left: Copy -->
-      <div class="col-12 col-lg-6">
-        <div class="brand mb-3">Alex &amp; Sam</div>
-
-        <h1 class="display-4 display-title mb-3">We’re engaged</h1>
-
-        <div class="d-flex gap-2 mb-4">
-          <span class="badge badge-soft rounded-pill px-3 py-2">Kyoto, Japan</span>
-          <span class="badge badge-soft rounded-pill px-3 py-2">12 Aug 2025</span>
+  <div class="frame ready" id="frame">
+    <div class="stack" aria-label="Engagement announcement layout">
+      <!-- HERO -->
+      <section class="hero" aria-label="Hero photograph">
+        <img src="/img/hero-16x9.jpg" alt="Alex and Sam just after the proposal in Kyoto" width="1920" height="1080" loading="eager" fetchpriority="high">
+        <!-- Seam toolbar placed on the hero’s bottom edge (across the seam) -->
+        <div class="seam" role="toolbar" aria-label="More information controls">
+          <button class="chip" data-target="story">Story</button>
+          <button class="chip" data-target="timeline">Timeline</button>
+          <button class="chip" data-target="details">Details</button>
         </div>
+      </section>
 
-        <p class="text-secondary mb-4" style="max-width:42ch">
-          A quiet moment, a simple question, and the easiest “yes.” Here’s the story and a few of our favourite photographs.
-        </p>
-
-        <!-- Micro-CTA row (modals; no scrolling needed) -->
-        <div class="d-flex flex-wrap gap-2">
-          <button class="btn btn-minimal" data-bs-toggle="modal" data-bs-target="#storyModal" aria-controls="storyModal" aria-label="Open our story">
-            Our story
-          </button>
-          <button class="btn btn-minimal" data-bs-toggle="modal" data-bs-target="#timelineModal" aria-controls="timelineModal" aria-label="Open timeline">
-            Timeline
-          </button>
-          <button class="btn btn-minimal" data-bs-toggle="modal" data-bs-target="#photosModal" aria-controls="photosModal" aria-label="Open photo gallery">
-            Photos
-          </button>
-        </div>
-      </div>
-
-      <!-- Right: Hero image -->
-      <div class="col-12 col-lg-6">
-        <img
-          src="/img/hero.webp"
-          alt="Alex and Sam on a quiet Kyoto street after the proposal"
-          width="1400" height="1750"
-          class="hero-img"
-          loading="eager"
-          fetchpriority="high">
-      </div>
-    </div>
-  </main>
-
-  <!-- Story Modal -->
-  <div class="modal fade" id="storyModal" tabindex="-1" aria-labelledby="storyTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content rounded-4">
-        <div class="modal-header">
-          <h2 class="modal-title fs-4" id="storyTitle">How it happened</h2>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close story"></button>
-        </div>
-        <div class="modal-body">
-          <p>
-            We wandered through Kyoto in the golden hour and found a quiet corner. A few words, a ring, and the easiest “yes” either of us has ever said.
-          </p>
-          <p class="mb-0 text-secondary">Simple, private, and exactly right for us.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Timeline Modal -->
-  <div class="modal fade" id="timelineModal" tabindex="-1" aria-labelledby="timelineTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content rounded-4">
-        <div class="modal-header">
-          <h2 class="modal-title fs-4" id="timelineTitle">Timeline</h2>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close timeline"></button>
-        </div>
-        <div class="modal-body">
-          <ol class="list-group list-group-numbered">
-            <li class="list-group-item">We met, we laughed, and never quite stopped.</li>
-            <li class="list-group-item">A trip we’d talked about forever — Kyoto.</li>
-            <li class="list-group-item">A quiet street, a question asked.</li>
-            <li class="list-group-item">A yes, a promise, and a very happy walk home.</li>
-          </ol>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Photos Modal (lightbox-style) -->
-  <div class="modal fade" id="photosModal" tabindex="-1" aria-labelledby="photosTitle" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered">
-      <div class="modal-content rounded-4">
-        <div class="modal-header">
-          <h2 class="modal-title fs-4" id="photosTitle">Photos</h2>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close photos"></button>
-        </div>
-        <div class="modal-body">
-          <!-- Simple grid; clicking swaps the large preview; arrow keys navigate -->
-          <div class="row g-4">
-            <div class="col-12 col-lg-7">
-              <figure class="mb-0">
-                <img id="previewImg" src="/img/g1.webp" alt="Selected engagement photo" class="w-100 rounded-4" width="1600" height="1000" loading="lazy">
-                <figcaption class="mt-2 text-secondary small">Use ← → keys to browse</figcaption>
-              </figure>
-            </div>
-            <div class="col-12 col-lg-5">
-              <div class="gallery-grid" id="thumbGrid" role="list">
-                <img src="/img/g1.webp" alt="Gallery image 1" width="600" height="400" role="listitem" tabindex="0" data-index="0" loading="lazy">
-                <img src="/img/g2.webp" alt="Gallery image 2" width="600" height="400" role="listitem" tabindex="0" data-index="1" loading="lazy">
-                <img src="/img/g3.webp" alt="Gallery image 3" width="600" height="400" role="listitem" tabindex="0" data-index="2" loading="lazy">
-                <img src="/img/g4.webp" alt="Gallery image 4" width="600" height="400" role="listitem" tabindex="0" data-index="3" loading="lazy">
-                <img src="/img/g5.webp" alt="Gallery image 5" width="600" height="400" role="listitem" tabindex="0" data-index="4" loading="lazy">
-                <img src="/img/g6.webp" alt="Gallery image 6" width="600" height="400" role="listitem" tabindex="0" data-index="5" loading="lazy">
-              </div>
-            </div>
+      <!-- EXPANDER (animated gap) -->
+      <div class="expander" id="expander" aria-live="polite" aria-expanded="false">
+        <div class="content" id="expanderContent">
+          <!-- Story -->
+          <div id="panel-story" hidden>
+            <h3>How it happened</h3>
+            <p class="muted">A quiet street at golden hour; a simple question; the easiest yes.</p>
+          </div>
+          <!-- Timeline -->
+          <div id="panel-timeline" hidden>
+            <h3>Timeline</h3>
+            <ol class="muted" style="margin:0; padding-left:1.1rem">
+              <li>We met and never quite stopped laughing.</li>
+              <li>Kyoto — a trip we’d planned forever.</li>
+              <li>A ring, a question, a fast yes.</li>
+              <li>Calls home and a very happy walk back.</li>
+            </ol>
+          </div>
+          <!-- Details -->
+          <div id="panel-details" hidden>
+            <h3>Details</h3>
+            <p class="muted">Kyoto, Japan · 12 Aug 2025 · Photo by <span aria-label="photographer name">[Your Photographer]</span></p>
           </div>
         </div>
-        <div class="modal-footer justify-content-between">
-          <button type="button" class="btn btn-outline-dark" id="prevBtn" aria-label="Previous photo">Previous</button>
-          <button type="button" class="btn btn-outline-dark" id="nextBtn" aria-label="Next photo">Next</button>
-        </div>
       </div>
+
+      <!-- THREE 16:9 THUMBS -->
+      <section class="thumbs" aria-label="Additional photographs">
+        <figure class="thumb"><img src="pen.jpg" alt="Engagement photo 1" width="1280" height="720" loading="lazy"></figure>
+        <figure class="thumb"><img src="pen.jpg" alt="Engagement photo 2" width="1280" height="720" loading="lazy"></figure>
+        <figure class="thumb"><img src="pen.jpg" alt="Engagement photo 3" width="1280" height="720" loading="lazy"></figure>
+      </section>
     </div>
   </div>
 
-  <!-- Bootstrap 5.3 (JS Bundle) -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-          integrity="sha384-TODOhash-js" crossorigin="anonymous"></script>
-
   <script>
-    // Reveal hero image after load (reduced-motion respected by CSS)
-    window.addEventListener('load', function(){
-      const hero = document.querySelector('.hero-img');
-      if(hero) hero.classList.add('is-visible');
+    // Fade-in images once loaded
+    window.addEventListener('load', () => {
+      document.documentElement.classList.add('ready');
     });
 
-    // Simple lightbox behaviour for Photos modal
+    // Expander logic: toolbar buttons open/close panels; thumbs slide down naturally
     (function(){
-      const images = [
-        '/img/g1.webp','/img/g2.webp','/img/g3.webp',
-        '/img/g4.webp','/img/g5.webp','/img/g6.webp'
-      ];
-      let current = 0;
+      const expander = document.getElementById('expander');
+      const content = document.getElementById('expanderContent');
+      const panels = {
+        story: document.getElementById('panel-story'),
+        timeline: document.getElementById('panel-timeline'),
+        details: document.getElementById('panel-details'),
+      };
 
-      const preview = document.getElementById('previewImg');
-      const grid = document.getElementById('thumbGrid');
-      const prevBtn = document.getElementById('prevBtn');
-      const nextBtn = document.getElementById('nextBtn');
+      function openPanel(name){
+        // Show only requested panel
+        Object.values(panels).forEach(p => p.hidden = true);
+        if (panels[name]) panels[name].hidden = false;
 
-      function show(i){
-        current = (i + images.length) % images.length;
-        preview.src = images[current];
+        // Open expander
+        expander.classList.add('open');
+        expander.setAttribute('aria-expanded', 'true');
+
+        // Auto-adjust max-height to content size (for smooth animation)
+        // (If CSS var --expander-max is smaller, it will cap height.)
+        const targetH = content.scrollHeight + 24; // padding allowance
+        expander.style.maxHeight = targetH + 'px';
       }
 
-      if(grid){
-        grid.addEventListener('click', (e)=>{
-          const t = e.target;
-          if(t && t.dataset && t.dataset.index){
-            show(parseInt(t.dataset.index,10));
+      function closePanel(){
+        expander.classList.remove('open');
+        expander.setAttribute('aria-expanded', 'false');
+        expander.style.maxHeight = null; // resets to CSS var limit
+      }
+
+      // Toggle behavior: clicking the same chip closes the expander
+      let current = null;
+      document.querySelectorAll('.chip').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const name = btn.dataset.target;
+          if (current === name && expander.classList.contains('open')) {
+            closePanel(); current = null; return;
           }
+          current = name; openPanel(name);
         });
-        grid.addEventListener('keydown', (e)=>{
-          if(e.key === 'Enter' || e.key === ' ') {
-            const t = e.target;
-            if(t && t.dataset && t.dataset.index){
-              show(parseInt(t.dataset.index,10));
-              e.preventDefault();
-            }
-          }
-        });
-      }
-      if(prevBtn) prevBtn.addEventListener('click', ()=> show(current-1));
-      if(nextBtn) nextBtn.addEventListener('click', ()=> show(current+1));
 
-      // Arrow key navigation only while modal is open
-      const photosModalEl = document.getElementById('photosModal');
-      if(photosModalEl){
-        photosModalEl.addEventListener('shown.bs.modal', ()=>{
-          document.addEventListener('keydown', keyNav);
-        });
-        photosModalEl.addEventListener('hidden.bs.modal', ()=>{
-          document.removeEventListener('keydown', keyNav);
-        });
-      }
-      function keyNav(e){
-        if(e.key === 'ArrowLeft') show(current-1);
-        if(e.key === 'ArrowRight') show(current+1);
+        // Keyboard "toggle on Space/Enter" is default for <button>, so no extra handlers needed
+      });
+
+      // Optional: close expander if user clicks outside the seam/expander
+      document.addEventListener('click', (e)=>{
+        const seam = e.target.closest('.seam');
+        const insideExpander = e.target.closest('#expander');
+        if (!seam && !insideExpander && expander.classList.contains('open')) {
+          closePanel(); current = null;
+        }
+      });
+
+      // Respect reduced motion by disabling JS height tween (CSS handles instant switch)
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+        expander.style.transition = 'none';
       }
     })();
   </script>

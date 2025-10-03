@@ -202,6 +202,13 @@
         <figure class="thumb"><img src="pen.jpg" alt="Engagement photo 1" width="1280" height="720" loading="lazy"></figure>
         <figure class="thumb"><img src="pen.jpg" alt="Engagement photo 2" width="1280" height="720" loading="lazy"></figure>
         <figure class="thumb"><img src="pen.jpg" alt="Engagement photo 3" width="1280" height="720" loading="lazy"></figure>
+            <!-- PATCH-B: SEAM OVERLAY BUTTONS -->
+      <div class="seam-overlay" role="toolbar" aria-label="More information">
+        <button class="seam-btn" data-target="story">Story</button>
+        <button class="seam-btn" data-target="timeline">Timeline</button>
+        <button class="seam-btn" data-target="details">Details</button>
+      </div>
+
       </section>
     </div>
   </div>
@@ -271,6 +278,31 @@
       if (window.matchMedia('(prefers-reduced-motion: reduce)').matches){
         expander.style.transition = 'none';
       }
+          // PATCH-C-FALLBACK: minimal expander wiring (only if missing in your file)
+      window.current ??= null;
+      const expander = document.getElementById('expander');
+      const content  = document.getElementById('expanderContent');
+      
+      function openPanel(name){
+        // hide all panels then show the requested one
+        document.querySelectorAll('#expanderContent > div').forEach(p => p.hidden = true);
+        const panel = document.getElementById('panel-' + name);
+        if (panel) panel.hidden = false;
+      
+        expander.classList.add('open');
+        expander.setAttribute('aria-expanded', 'true');
+        // auto size the gap to the content height for a smooth slide
+        requestAnimationFrame(() => {
+          expander.style.maxHeight = (content.scrollHeight + 24) + 'px';
+        });
+      }
+      
+      function closePanel(){
+        expander.classList.remove('open');
+        expander.setAttribute('aria-expanded', 'false');
+        expander.style.maxHeight = null;
+      }
+
     })();
   </script>
 </body>

@@ -177,120 +177,93 @@
     @media (prefers-reduced-transparency: reduce){
       .seam-btn{ background:#fff; color:#111; text-shadow:none; }
     }
-        /* PATCH-TL CSS */
-/* TL-ALT CSS (alternating above/below a central line) */
-    /* TL-LAYOUT: centre within expander column */
-#panel-timeline{ justify-self:center; width:100%; }
+/* PATCH-TL CSS — CLEAN */
 
-.tl-h{ margin:.2rem 0 .8rem; 
-      font:600 1rem/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; 
-      text-align:center; 
-     }
+#panel-timeline{
+  grid-column:1 / -1;
+  justify-self:center;
+  width:100%;
+  text-align:initial;
+  direction:ltr;
+}
 
+/* centre the items in the panel */
+.expander > .content{ justify-items:center; }
+
+.tl-h{
+  margin:.2rem 0 .8rem;
+  font:600 1rem/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  text-align:center;
+}
+
+/* centred grid under a top hairline */
 .tl{
   position:relative;
   display:grid;
-  grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); /* adjust count if you add items */
+  grid-template-columns:repeat(5, minmax(140px, 1fr)); /* set to your item count (5 here) */
   gap:16px;
-  justify-content:center;    
-  justify-items:center;       /* centre each column’s content */
+  justify-content:center;
+  justify-items:center;
   align-items:start;
   margin-inline:auto;
-  max-width:none;
-  padding-top:34px;         
+  max-width:1100px;        /* widen/narrow to taste */
+  padding-top:34px;        /* room for the top line */
 }
 
-/* TL-LINE: SVG styling */
-.tl{ position:relative; } /* make sure container is positioned */
+/* SVG hairline */
 .tl-line-svg{
   position:absolute; left:0; right:0; top:0;
-  height:2px; width:100%;
-  z-index:1;              /* sit above panel background, under ticks */
-  pointer-events:none;
+  width:100%; height:2px; z-index:1; pointer-events:none;
 }
 .tl-line-svg line{
-  stroke:#111;
-  stroke-width:.6;                 /* sub-pixel hairline */
-  shape-rendering:crispEdges;      /* snap to pixel grid */
-  vector-effect:non-scaling-stroke;/* keep thickness constant */
+  stroke:#111; stroke-width:.6;
+  shape-rendering:crispEdges; vector-effect:non-scaling-stroke;
   opacity:.9;
 }
 
+/* each item = tick, label, image */
 .tl-item{
-  position:relative;
-  display:grid;
-  grid-template-rows: 14px auto auto;   /* (A) above line, (B) line zone, (C) below line */
-  align-items:center;
-  justify-items:center;
-  gap:8px;
-  background:transparent;
-  border:none; padding:0; margin:0;
-  cursor:pointer; text-align:center;
-  /* TL-UX: states */
-.tl-item:focus-visible { outline:3px solid #000; outline-offset:4px; border-radius:10px; }
-.tl-item:hover .tl-thumb { filter:brightness(1.05); transform:translateY(-1px); transition:transform .2s ease, filter .2s ease; }
-
-}
-    
-
-/* Dot sits in the line zone (row 2), centered horizontally */
-.tl-dot{
-  grid-row:2; grid-column:1;
-  width:10px; height:10px; border-radius:50%;
-  background:#111;
-  box-shadow:0 0 0 3px #fff inset, 0 0 0 2px #111;
-}
-    /* TL-UX: active dot */
-.tl-dot.active{ 
-  background:#0a0a0a; 
-  box-shadow:0 0 0 4px #fff inset, 
-    0 0 0 3px #000, 
-    0 0 0 8px rgba(0,0,0,.08); }
-
-
-/* TL-FREESIZE: no bars, variable height */
-.tl-thumb{
-  width:100%;
-  height:auto;            /* drop aspect-ratio */
-  display:block;
-  object-fit:contain;
-  background:transparent
-  border-radius:8px;
-  box-shadow:0 8px 18px rgba(0,0,0,.08);
+  background:transparent; border:none; padding:0; margin:0;
+  cursor:pointer; text-align:center; width:100%;
+  display:grid; grid-template-rows:14px auto auto; gap:8px;
+  align-items:start; justify-items:center;
 }
 
+/* states (NOTE: separate rules; no nesting) */
+.tl-item:focus-visible{ outline:3px solid #000; outline-offset:4px; border-radius:10px; }
+.tl-item:hover .tl-thumb{ filter:brightness(1.05); transform:translateY(-1px); transition:transform .2s ease, filter .2s ease; }
 
-.tl-date{ min-height:1.2em;
+/* tick from the line */
+.tl-tick{ width:2px; height:14px; background:#111; opacity:.9; margin-inline:auto; }
+
+/* label always under the line, never alternating */
+.tl-date{
+  min-height:1.2em;
   font:500 .9rem/1 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   color:#333;
 }
 
-/* Alternate positions:
-   Odd items: date ABOVE (row 1), thumb BELOW (row 3).
-   Even items: thumb ABOVE (row 1), date BELOW (row 3). */
-.tl-item:nth-child(odd)  .tl-date{ grid-row:1; }
-.tl-item:nth-child(odd)  .tl-thumb{ grid-row:3; }
-.tl-item:nth-child(even) .tl-thumb{ grid-row:1; }
-.tl-item:nth-child(even) .tl-date{ grid-row:3; }
+/* image: keep proportions; cap portraits so they don't dominate */
+.tl-thumb{
+  display:block;
+  max-width:100%;
+  height:auto;                 /* keep natural aspect */
+  max-height:220px;            /* cap tall portraits; tweak as needed */
+  object-fit:contain;          /* no cropping */
+  background:transparent;      /* ← missing semicolon fixed */
+  border-radius:8px;
+  box-shadow:0 8px 18px rgba(0,0,0,.08);
+}
 
-/* Small screens: drop to 2 columns but keep alternation */
+/* mobile: 2 columns, still centred */
 @media (max-width:520px){
   .tl{
     grid-template-columns:repeat(2, minmax(120px, 1fr));
     gap:10px;
-    justify-content: center;   
     max-width:520px;
   }
 }
 
-    
-    /* Compact on very small widths; keep within expander without page scroll */
-    @media (max-width:520px){
-      .tl{ grid-template-columns:repeat(2, 1fr); gap:8px; }
-      .tl-line{ top:30px; }
-      .tl-dot{ top:28px; }
-      .tl-thumb{ border-radius:6px; }
-    }
 #tl-viewer{
   position:fixed; inset:0;
   background:rgba(0,0,0,.9);
@@ -345,7 +318,6 @@
           <div class="tl tl-top" id="tl">
             <!-- TL-LINE: SVG hairline -->
 
-            <div class="tl-line" aria-hidden="true"></div>
             <svg class="tl-line-svg" viewBox="0 0 100 2" preserveAspectRatio="none" aria-hidden="true">
   <line x1="0" y1="1" x2="100" y2="1" />
 </svg>

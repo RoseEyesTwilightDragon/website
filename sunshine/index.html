@@ -208,6 +208,7 @@
   margin-inline:auto;
   max-width:1100px;        /* widen/narrow to taste */
   padding-top:34px;        /* room for the top line */
+  background:transparent;
 }
 
 /* SVG hairline */
@@ -223,19 +224,18 @@
 
 /* each item = tick, label, image */
 .tl-item{
-  background:transparent; border:none; padding:0; margin:0;
-  cursor:pointer; text-align:center; width:100%;
-  display:grid; grid-template-rows:14px auto auto; gap:8px;
+  position:relative;
+  background:'#fff; 
+  border:1px solid #eee
+  border-radius:10px;
+  padding:10px 10px 12px;
+  display:grid;
+  grid-template-rows: 0px auto auto; /* dot is absolutely positioned on the line */
+  gap:8px;
   align-items:start; justify-items:center;
+  cursor:pointer; text-align:center;
+  z-index:2;                     /* above the hairline */
 }
-
-/* states (NOTE: separate rules; no nesting) */
-.tl-item:focus-visible{ outline:3px solid #000; outline-offset:4px; border-radius:10px; }
-.tl-item:hover .tl-thumb{ filter:brightness(1.05); transform:translateY(-1px); transition:transform .2s ease, filter .2s ease; }
-
-/* tick from the line */
-.tl-tick{ width:2px; height:14px; background:#111; opacity:.9; margin-inline:auto; }
-
 /* label always under the line, never alternating */
 .tl-date{
   min-height:1.2em;
@@ -250,10 +250,16 @@
   height:auto;                 /* keep natural aspect */
   max-height:220px;            /* cap tall portraits; tweak as needed */
   object-fit:contain;          /* no cropping */
-  background:transparent;      /* ← missing semicolon fixed */
-  border-radius:8px;
+  background:#fff;      /* ← missing semicolon fixed */
+  border-radius:6px;
   box-shadow:0 8px 18px rgba(0,0,0,.08);
 }
+
+
+/* states (NOTE: separate rules; no nesting) */
+.tl-item:focus-visible{ outline:3px solid #000; outline-offset:4px; }
+.tl-item:hover .tl-thumb{ filter:brightness(1.05); transform:translateY(-1px); transition:transform .2s ease, filter .2s ease; }
+
 
 /* mobile: 2 columns, still centred */
 @media (max-width:520px){
@@ -313,46 +319,50 @@
           </div>
           <!-- Timeline -->
           <div id="panel-timeline" hidden>
-        <!-- PATCH-TL MARKUP -->
-          <h3 class="tl-h">Timeline</h3>
-          <div class="tl tl-top" id="tl">
-            <!-- TL-LINE: SVG hairline -->
+        <!-- PATCH-TL MARKUP --><!-- TL-TOP-LINE CLEAN -->
+<h3 class="tl-h">Timeline</h3>
+<div class="tl" id="tl">
+  <!-- crisp SVG hairline -->
+  <svg class="tl-line-svg" viewBox="0 0 100 2" preserveAspectRatio="none" aria-hidden="true">
+    <line x1="0" y1="1" x2="100" y2="1" />
+  </svg>
 
-            <svg class="tl-line-svg" viewBox="0 0 100 2" preserveAspectRatio="none" aria-hidden="true">
-  <line x1="0" y1="1" x2="100" y2="1" />
-</svg>
+  <!-- Item 1 -->
+  <button class="tl-item" data-full="pen.jpg">
+    <span class="tl-dot" aria-hidden="true"></span>
+    <span class="tl-date">2019 · Met</span>
+    <img class="tl-thumb" src="pen.jpg" alt="We met">
+  </button>
 
-          
-            <!-- ITEM -->
-            <button class="tl-item" data-full="pen.jpg">
-              <span class="tl-dot" aria-hidden="true"></span>
-              <span class="tl-date">2019 · Met</span>
-              <img class="tl-thumb" src="pen.jpg" alt="We met" width="320" height="180" loading="lazy">
-            </button>
-          
-            <button class="tl-item" data-full="mus.jpg">
-              <span class="tl-dot" aria-hidden="true"></span>
-              <span class="tl-date">2021 · First trip</span>
-              <img class="tl-thumb" src="mus.jpg" alt="First trip" width="320" height="180" loading="lazy">
-            </button>
-          
-            <button class="tl-item" data-full="sub.jpg">
-              <span class="tl-dot" aria-hidden="true"></span>
-              <span class="tl-date">2025 · Kyoto</span>
-              <img class="tl-thumb" src="sub.jpeg" alt="Kyoto" width="320" height="180" loading="lazy">
-            </button>
-          
-            <button class="tl-item" data-full="all.webp">
-              <span class="tl-dot" aria-hidden="true"></span>
-              <span class="tl-date">2025 · The yes</span>
-              <img class="tl-thumb" src="all.webp" alt="The proposal" width="320" height="180" loading="lazy">
-            </button>
+  <!-- Item 2 -->
+  <button class="tl-item" data-full="mus.jpg">
+    <span class="tl-dot" aria-hidden="true"></span>
+    <span class="tl-date">2021 · First trip</span>
+    <img class="tl-thumb" src="mus.jpg" alt="First trip">
+  </button>
 
-              <button class="tl-item" data-full="su2.jpg">
-              <span class="tl-dot" aria-hidden="true"></span>
-              <span class="tl-date">2025 · The yes</span>
-              <img class="tl-thumb" src="su2.jpg" alt="The proposal" width="320" height="180" loading="lazy">
-            </button>
+  <!-- Item 3 -->
+  <button class="tl-item" data-full="sub.jpeg">
+    <span class="tl-dot" aria-hidden="true"></span>
+    <span class="tl-date">2025 · Kyoto</span>
+    <img class="tl-thumb" src="sub.jpeg" alt="Kyoto">
+  </button>
+
+  <!-- Item 4 -->
+  <button class="tl-item" data-full="all.webp">
+    <span class="tl-dot" aria-hidden="true"></span>
+    <span class="tl-date">2025 · The yes</span>
+    <img class="tl-thumb" src="all.webp" alt="The proposal">
+  </button>
+
+  <!-- Item 5 -->
+  <button class="tl-item" data-full="su2.jpg">
+    <span class="tl-dot" aria-hidden="true"></span>
+    <span class="tl-date">2025 · Another moment</span>
+    <img class="tl-thumb" src="su2.jpg" alt="Another moment">
+  </button>
+</div>
+
           </div>
 
           </div>

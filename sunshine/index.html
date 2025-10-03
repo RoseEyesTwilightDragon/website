@@ -27,7 +27,17 @@
       --expander-max:160px;   /* expanded gap height */
       --radius:14px;
     }
-    html,body{height:100%; margin:0; background:var(--bg); color:var(--fg); -webkit-font-smoothing:antialiased}
+    /* PATCH: NO-PAGE-SCROLL */
+    html,body{
+      height:100%;
+      margin:0;
+      background:var(--bg);
+      color:var(--fg);
+      -webkit-font-smoothing:antialiased;
+      overflow:hidden;            /* stop any vertical scroll / 1px gaps */
+      overscroll-behavior:none;   /* prevent bounce on touch devices */
+    }
+
     /* STEP-06 FIT-VIEWPORT */
 /* PATCH-FRAME-EDGE */
     .frame{

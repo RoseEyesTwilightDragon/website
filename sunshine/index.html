@@ -136,12 +136,12 @@
 
     /* Small screens: keep no-scroll guarantee by narrowing inner width (via frame width rule).
        On very narrow phones, reduce gap & text size inside expander. */
-    @media (max-width: 520px){
-      :root{ --gap:10px; --expander-max:180px }
-      .chip{ font-size:.85rem; padding:.45rem .7rem }
-      .expander > .content{ grid-template-columns:1fr; gap:10px }
-    }
-    
+/* FIX-3: no gaps on mobile */
+@media (max-width:520px){
+  :root{ --gap:0 }
+  .expander > .content{ grid-template-columns:1fr; gap:10px }
+}
+
     .hero{ position:relative; }
 
     .seam-overlay{
@@ -300,7 +300,7 @@
   </div>
 
 <script>
-  // PATCH-EXPANDER-ROBUST
+  // ===== Expander wiring =====
   const expander = document.getElementById('expander');
   const content  = document.getElementById('expanderContent');
   const panels   = content ? Array.from(content.children) : [];
@@ -308,25 +308,17 @@
 
   function openPanel(name){
     if (!expander || !content) return;
-    // PATCH-TL RESIZE
-    requestAnimationFrame(() => {
-      const h = content.scrollHeight + 24;   // padding allowance
-      expander.style.maxHeight = h + 'px';
-    });
 
-    // Hide all; show the requested panel
+    // Hide all, show requested
     panels.forEach(p => p.hidden = true);
     const target = document.getElementById('panel-' + name);
     if (target) target.hidden = false;
 
-    // Open + size to actual content height
+    // Open + size to content
     expander.classList.add('open');
     expander.setAttribute('aria-expanded','true');
-
-    // Measure after layout
     requestAnimationFrame(() => {
-      const h = content.scrollHeight + 24; // padding allowance
-      expander.style.maxHeight = h + 'px';
+      expander.style.maxHeight = (content.scrollHeight + 24) + 'px';
     });
   }
 
@@ -334,30 +326,29 @@
     if (!expander) return;
     expander.classList.remove('open');
     expander.setAttribute('aria-expanded','false');
-    expander.style.maxHeight = null; // back to CSS default (0)
+    expander.style.maxHeight = null;
   }
 
-  // Bind the three seam buttons
+  // Bind seam buttons
   document.querySelectorAll('.seam-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const name = btn.dataset.target;
       if (!name) return;
-
-      if (current === name && expander.classList.contains('open')) {
-        closePanel(); current = null; return;
-      }
+      if (current === name && expander.classList.contains('open')) { closePanel(); current = null; return; }
       current = name; openPanel(name);
     });
   });
 
-  // Close expander when clicking outside it or the overlay
+  // Close when clicking outside expander/overlay
   document.addEventListener('click', (e) => {
     const insideOverlay = e.target.closest('.seam-overlay');
     const insideExpander = e.target.closest('#expander');
     if (!insideOverlay && !insideExpander && expander && expander.classList.contains('open')) {
       closePanel(); current = null;
     }
-      // Timeline lightbox
+  });
+
+  // ===== Timeline lightbox =====
   (function(){
     const viewer = document.getElementById('tl-viewer');
     const img    = document.getElementById('tl-viewer-img');
@@ -366,31 +357,41 @@
 
     function openAt(i){
       const el = items[i];
-      if(!el) return;
+      if(!el || !viewer || !img) return;
       idx = i;
       const src = el.getAttribute('data-full') || el.querySelector('.tl-thumb')?.src;
       img.src = src;
-      viewer.hidden = false;
+      viewer.removeAttribute('hidden');   // show
     }
     function close(){
-      viewer.hidden = true;
+      if(!viewer || !img) return;
+      viewer.setAttribute('hidden','');   // hide
       img.src = '';
     }
+
     items.forEach((btn, i)=>{
       btn.addEventListener('click', ()=> openAt(i));
       btn.addEventListener('keydown', (e)=> {
         if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openAt(i); }
       });
     });
-    viewer.addEventListener('click', close);
+
+    if (viewer){
+      viewer.addEventListener('click', (e)=>{
+        // click outside the image closes
+        if (!e.target.closest('#tl-viewer-img')) close();
+      });
+    }
+
     document.addEventListener('keydown', (e)=>{
-      if(viewer.hidden) return;
-      if(e.key === 'Escape') close();
-      if(e.key === 'ArrowRight') openAt(Math.min(items.length-1, idx+1));
-      if(e.key === 'ArrowLeft')  openAt(Math.max(0, idx-1));
+      if (!viewer || viewer.hasAttribute('hidden')) return;
+      if (e.key === 'Escape') close();
+      if (e.key === 'ArrowRight') openAt(Math.min(items.length-1, idx+1));
+      if (e.key === 'ArrowLeft')  openAt(Math.max(0, idx-1));
     });
-  });
+  })();
 </script>
+
 <!-- PATCH-TL VIEWER -->
 <div id="tl-viewer" hidden
      style="position:fixed; inset:0; background:rgba(0,0,0,.9); display:grid; place-items:center; z-index:999;">

@@ -169,49 +169,76 @@
       .seam-btn{ background:#fff; color:#111; text-shadow:none; }
     }
         /* PATCH-TL CSS */
-    .tl-h{ margin:.2rem 0 .6rem; font:600 1rem/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
-    
-    .tl{
-      position:relative;
-      display:grid;
-      grid-template-columns:repeat(4, 1fr);   /* 4 items; adjust if you add more */
-      gap:12px;
-      align-items:start;
-    }
-    
-    .tl-line{
-      position:absolute; left:0; right:0;
-      top:36px;                       /* aligns through dots */
-      height:2px; background:#ddd; border-radius:2px;
-    }
-    
-    .tl-item{
-      position:relative;
-      display:grid;
-      grid-template-rows:auto auto;
-      gap:6px;
-      background:transparent;
-      border:none; padding:0; margin:0;
-      text-align:left; cursor:pointer;
-    }
-    
-    .tl-date{
-      font:500 .9rem/1 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      color:#333;
-    }
-    
-    .tl-dot{
-      position:absolute; left:50%; top:34px;
-      width:10px; height:10px; border-radius:50%;
-      background:#111; transform:translateX(-50%);
-      box-shadow:0 0 0 3px #fff inset, 0 0 0 2px #111;
-    }
-    
-    .tl-thumb{
-      width:100%; aspect-ratio:16/9;
-      object-fit:cover; border-radius:8px; display:block;
-      box-shadow:0 8px 18px rgba(0,0,0,.08);
-    }
+/* TL-ALT CSS (alternating above/below a central line) */
+.tl-h{ margin:.2rem 0 .6rem; font:600 1rem/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; text-align:center; }
+
+.tl{
+  position:relative;
+  display:grid;
+  grid-template-columns:repeat(4, minmax(140px, 1fr)); /* adjust count if you add items */
+  gap:16px;
+  justify-content:center;     /* centre the whole strip */
+  justify-items:center;       /* centre each column’s content */
+  align-items:center;
+  margin-inline:auto;
+  max-width:960px;
+}
+
+.tl-line{
+  position:absolute; left:0; right:0;
+  top:50%; transform:translateY(-50%);  /* centre line vertically */
+  height:2px; background:#ddd; border-radius:2px;
+}
+
+.tl-item{
+  position:relative;
+  display:grid;
+  grid-template-rows: auto 12px auto;   /* (A) above line, (B) line zone, (C) below line */
+  align-items:center;
+  justify-items:center;
+  gap:8px;
+  background:transparent;
+  border:none; padding:0; margin:0;
+  cursor:pointer; text-align:center;
+}
+
+/* Dot sits in the line zone (row 2), centered horizontally */
+.tl-dot{
+  grid-row:2; grid-column:1;
+  width:10px; height:10px; border-radius:50%;
+  background:#111;
+  box-shadow:0 0 0 3px #fff inset, 0 0 0 2px #111;
+}
+
+/* Thumbs are 16:9 mini images */
+.tl-thumb{
+  width:100%; aspect-ratio:16/9; object-fit:cover; display:block;
+  border-radius:8px;
+  box-shadow:0 8px 18px rgba(0,0,0,.08);
+}
+
+.tl-date{
+  font:500 .9rem/1 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  color:#333;
+}
+
+/* Alternate positions:
+   Odd items: date ABOVE (row 1), thumb BELOW (row 3).
+   Even items: thumb ABOVE (row 1), date BELOW (row 3). */
+.tl-item:nth-child(odd)  .tl-date{ grid-row:1; }
+.tl-item:nth-child(odd)  .tl-thumb{ grid-row:3; }
+.tl-item:nth-child(even) .tl-thumb{ grid-row:1; }
+.tl-item:nth-child(even) .tl-date{ grid-row:3; }
+
+/* Small screens: drop to 2 columns but keep alternation */
+@media (max-width:520px){
+  .tl{
+    grid-template-columns:repeat(2, minmax(120px, 1fr));
+    gap:10px;
+    max-width:520px;
+  }
+}
+
     
     /* Compact on very small widths; keep within expander without page scroll */
     @media (max-width:520px){

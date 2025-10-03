@@ -29,15 +29,16 @@
     }
     html,body{height:100%; margin:0; background:var(--bg); color:var(--fg); -webkit-font-smoothing:antialiased}
     /* STEP-06 FIT-VIEWPORT */
+/* PATCH-FRAME-EDGE */
     .frame{
-      /* 1 hero + 3 minis (all 16:9) → width ≤ 133.333vh prevents vertical overflow */
       width:min(100vw, 133.333dvh);
       height:100dvh;
       margin-inline:auto;
       display:flex; align-items:center; justify-content:center;
-      padding:clamp(8px, 2vw, 24px); /* set to 0 for true edge-to-edge */
+      padding:0;                 /* was clamp(...) — remove white border */
       box-sizing:border-box;
     }
+
 
     .stack{
       width:100%;
@@ -46,18 +47,23 @@
       gap:var(--gap);
     }
 
-    /* 16:9 boxes using aspect-ratio */
+/* PATCH-TILE-EDGE */
     .hero, .thumb{
-      position:relative;
-      overflow:hidden;
-      border-radius:var(--radius);
-      background:#eee;
-      box-shadow:0 10px 28px rgba(0,0,0,.08);
-      isolation:isolate;
+      border-radius:0;           /* remove rounded white corners */
+      box-shadow:none;           /* remove soft white glow */
+      background:#000;           /* avoids faint seams on bright images */
     }
+    /* PATCH-FIGURE-MARGINS */
+    .thumb{ margin:0; }          /* <figure> has default margin — kill it */
+    .thumbs{ margin:0; }         /* belt-and-braces */
+
     .hero{ aspect-ratio:16 / 9; }
     .thumbs{ display:grid; grid-template-columns:repeat(3, 1fr); gap:var(--gap); }
     .thumb{ aspect-ratio:16 / 9; }
+    figure { margin:0; }        /* default browser margin creates gaps */
+    .thumb { margin:0; }        /* belt-and-braces */
+    .thumbs{ gap:0; }           /* ensure no grid gap */
+    .stack { gap:0; }           /* ensure no stack gap */
 
     .hero img, .thumb img{
       width:100%; height:100%; object-fit:cover; display:block;
@@ -202,108 +208,65 @@
         <figure class="thumb"><img src="pen.jpg" alt="Engagement photo 1" width="1280" height="720" loading="lazy"></figure>
         <figure class="thumb"><img src="pen.jpg" alt="Engagement photo 2" width="1280" height="720" loading="lazy"></figure>
         <figure class="thumb"><img src="pen.jpg" alt="Engagement photo 3" width="1280" height="720" loading="lazy"></figure>
-            <!-- PATCH-B: SEAM OVERLAY BUTTONS -->
-      <div class="seam-overlay" role="toolbar" aria-label="More information">
-        <button class="seam-btn" data-target="story">Story</button>
-        <button class="seam-btn" data-target="timeline">Timeline</button>
-        <button class="seam-btn" data-target="details">Details</button>
-      </div>
-
       </section>
     </div>
   </div>
 
-  <script>
-    // Fade-in images once loaded
-    window.addEventListener('load', () => {
-      document.documentElement.classList.add('ready');
+<script>
+  // PATCH-EXPANDER-ROBUST
+  const expander = document.getElementById('expander');
+  const content  = document.getElementById('expanderContent');
+  const panels   = content ? Array.from(content.children) : [];
+  let current = null;
+
+  function openPanel(name){
+    if (!expander || !content) return;
+
+    // Hide all; show the requested panel
+    panels.forEach(p => p.hidden = true);
+    const target = document.getElementById('panel-' + name);
+    if (target) target.hidden = false;
+
+    // Open + size to actual content height
+    expander.classList.add('open');
+    expander.setAttribute('aria-expanded','true');
+
+    // Measure after layout
+    requestAnimationFrame(() => {
+      const h = content.scrollHeight + 24; // padding allowance
+      expander.style.maxHeight = h + 'px';
     });
+  }
 
-    // Expander logic: toolbar buttons open/close panels; thumbs slide down naturally
-    (function(){
-      const expander = document.getElementById('expander');
-      const content = document.getElementById('expanderContent');
-      const panels = {
-        story: document.getElementById('panel-story'),
-        timeline: document.getElementById('panel-timeline'),
-        details: document.getElementById('panel-details'),
-      };
+  function closePanel(){
+    if (!expander) return;
+    expander.classList.remove('open');
+    expander.setAttribute('aria-expanded','false');
+    expander.style.maxHeight = null; // back to CSS default (0)
+  }
 
-      function openPanel(name){
-        // Show only requested panel
-        Object.values(panels).forEach(p => p.hidden = true);
-        if (panels[name]) panels[name].hidden = false;
+  // Bind the three seam buttons
+  document.querySelectorAll('.seam-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const name = btn.dataset.target;
+      if (!name) return;
 
-        // Open expander
-        expander.classList.add('open');
-        expander.setAttribute('aria-expanded', 'true');
-
-        // Auto-adjust max-height to content size (for smooth animation)
-        // (If CSS var --expander-max is smaller, it will cap height.)
-        const targetH = content.scrollHeight + 24; // padding allowance
-        expander.style.maxHeight = targetH + 'px';
+      if (current === name && expander.classList.contains('open')) {
+        closePanel(); current = null; return;
       }
+      current = name; openPanel(name);
+    });
+  });
 
-      function closePanel(){
-        expander.classList.remove('open');
-        expander.setAttribute('aria-expanded', 'false');
-        expander.style.maxHeight = null; // resets to CSS var limit
-      }
+  // Close expander when clicking outside it or the overlay
+  document.addEventListener('click', (e) => {
+    const insideOverlay = e.target.closest('.seam-overlay');
+    const insideExpander = e.target.closest('#expander');
+    if (!insideOverlay && !insideExpander && expander && expander.classList.contains('open')) {
+      closePanel(); current = null;
+    }
+  });
+</script>
 
-      // Toggle behavior: clicking the same chip closes the expander
-      let current = null;
-      document.querySelectorAll('.seam-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const name = btn.dataset.target;
-        if (current === name && expander.classList.contains('open')) {
-          closePanel(); current = null; return;
-        }
-        current = name; openPanel(name);
-      });
-      });
-
-        // Keyboard "toggle on Space/Enter" is default for <button>, so no extra handlers needed
-      });
-
-      // Optional: close expander if user clicks outside the seam/expander
-      document.addEventListener('click', (e)=>{
-        const seam = e.target.closest('.seam');
-        const insideExpander = e.target.closest('#expander');
-        if (!seam && !insideExpander && expander.classList.contains('open')) {
-          closePanel(); current = null;
-        }
-      });
-
-      // Respect reduced motion by disabling JS height tween (CSS handles instant switch)
-      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches){
-        expander.style.transition = 'none';
-      }
-          // PATCH-C-FALLBACK: minimal expander wiring (only if missing in your file)
-      window.current ??= null;
-      const expander = document.getElementById('expander');
-      const content  = document.getElementById('expanderContent');
-      
-      function openPanel(name){
-        // hide all panels then show the requested one
-        document.querySelectorAll('#expanderContent > div').forEach(p => p.hidden = true);
-        const panel = document.getElementById('panel-' + name);
-        if (panel) panel.hidden = false;
-      
-        expander.classList.add('open');
-        expander.setAttribute('aria-expanded', 'true');
-        // auto size the gap to the content height for a smooth slide
-        requestAnimationFrame(() => {
-          expander.style.maxHeight = (content.scrollHeight + 24) + 'px';
-        });
-      }
-      
-      function closePanel(){
-        expander.classList.remove('open');
-        expander.setAttribute('aria-expanded', 'false');
-        expander.style.maxHeight = null;
-      }
-
-    })();
-  </script>
 </body>
 </html>

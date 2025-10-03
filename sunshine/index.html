@@ -180,7 +180,10 @@
     /* TL-LAYOUT: centre within expander column */
 #panel-timeline{ justify-self:center; width:100%; }
 
-.tl-h{ margin:.2rem 0 .6rem; font:600 1rem/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; text-align:center; }
+.tl-h{ margin:.2rem 0 .8rem; 
+      font:600 1rem/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; 
+      text-align:center; 
+     }
 
 .tl{
   position:relative;
@@ -192,18 +195,19 @@
   align-items:center;
   margin-inline:auto;
   max-width:none;
+  padding-top:34px;         
 }
 
 .tl-line{
   position:absolute; left:0; right:0;
-  top:50%; transform:translateY(-50%);  /* centre line vertically */
-  height:2px; background:#ddd; border-radius:2px;
+  top:0; height:2px;  /* centre line vertically */
+  background:#ddd; border-radius:2px;
 }
 
 .tl-item{
   position:relative;
   display:grid;
-  grid-template-rows: auto 12px auto;   /* (A) above line, (B) line zone, (C) below line */
+  grid-template-rows: 14px auto auto;   /* (A) above line, (B) line zone, (C) below line */
   align-items:center;
   justify-items:center;
   gap:8px;
@@ -261,6 +265,7 @@
   .tl{
     grid-template-columns:repeat(2, minmax(120px, 1fr));
     gap:10px;
+    justify-content: center;   
     max-width:520px;
   }
 }
@@ -324,7 +329,7 @@
           <div id="panel-timeline" hidden>
         <!-- PATCH-TL MARKUP -->
           <h3 class="tl-h">Timeline</h3>
-          <div class="tl" id="tl">
+          <div class="tl tl-top" id="tl">
             <div class="tl-line" aria-hidden="true"></div>
           
             <!-- ITEM -->

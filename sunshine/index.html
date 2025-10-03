@@ -113,6 +113,8 @@
   grid-column: 1 / -1;   /* span all columns of .expander > .content */
   justify-self: center;  /* centre the panel within the expander grid */
   width: 100%;
+  text-align:initial;     /* reset any inherited right-align */
+  direction:ltr;          /* in case anything set RTL elsewhere */
 }
 
     .expander{
@@ -190,18 +192,21 @@
   display:grid;
   grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); /* adjust count if you add items */
   gap:16px;
-  justify-content:space-between;    
+  justify-content:center;    
   justify-items:center;       /* centre each column’s content */
-  align-items:center;
+  align-items:start;
   margin-inline:auto;
   max-width:none;
   padding-top:34px;         
 }
 
 /* TL-LINE: SVG styling */
+.tl{ position:relative; } /* make sure container is positioned */
 .tl-line-svg{
   position:absolute; left:0; right:0; top:0;
   height:2px; width:100%;
+  z-index:1;              /* sit above panel background, under ticks */
+  pointer-events:none;
 }
 .tl-line-svg line{
   stroke:#111;
@@ -226,6 +231,7 @@
 .tl-item:hover .tl-thumb { filter:brightness(1.05); transform:translateY(-1px); transition:transform .2s ease, filter .2s ease; }
 
 }
+    
 
 /* Dot sits in the line zone (row 2), centered horizontally */
 .tl-dot{
@@ -247,12 +253,14 @@
   width:100%;
   height:auto;            /* drop aspect-ratio */
   display:block;
+  object-fit:contain;
+  background:transparent
   border-radius:8px;
   box-shadow:0 8px 18px rgba(0,0,0,.08);
 }
 
 
-.tl-date{
+.tl-date{ min-height:1.2em;
   font:500 .9rem/1 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   color:#333;
 }
@@ -336,11 +344,12 @@
           <h3 class="tl-h">Timeline</h3>
           <div class="tl tl-top" id="tl">
             <!-- TL-LINE: SVG hairline -->
-<svg class="tl-line-svg" viewBox="0 0 100 2" preserveAspectRatio="none" aria-hidden="true">
+
+            <div class="tl-line" aria-hidden="true"></div>
+            <svg class="tl-line-svg" viewBox="0 0 100 2" preserveAspectRatio="none" aria-hidden="true">
   <line x1="0" y1="1" x2="100" y2="1" />
 </svg>
 
-            <div class="tl-line" aria-hidden="true"></div>
           
             <!-- ITEM -->
             <button class="tl-item" data-full="pen.jpg">
@@ -400,20 +409,35 @@
   let current = null;
 
   function openPanel(name){
-    if (!expander || !content) return;
+  if (!expander || !content) return;
 
-    // Hide all, show requested
-    panels.forEach(p => p.hidden = true);
-    const target = document.getElementById('panel-' + name);
-    if (target) target.hidden = false;
+  // Show requested panel, hide others
+  Array.from(content.children).forEach(p => p.hidden = true);
+  const target = document.getElementById('panel-' + name);
+  if (target) target.hidden = false;
 
-    // Open + size to content
-    expander.classList.add('open');
-    expander.setAttribute('aria-expanded','true');
-    requestAnimationFrame(() => {
-      expander.style.maxHeight = (content.scrollHeight + 24) + 'px';
-    });
-  }
+  // Open expander first
+  expander.classList.add('open');
+  expander.setAttribute('aria-expanded','true');
+
+  // Height recalculation helper
+  const resize = () => {
+    expander.style.maxHeight = (content.scrollHeight + 24) + 'px';
+  };
+
+  // Double RAF ensures styles apply before measuring
+  requestAnimationFrame(() => {
+    requestAnimationFrame(resize);
+  });
+
+  // Also resize when any image inside loads (first open case)
+  content.querySelectorAll('img').forEach(img => {
+    if (!img.dataset._boundResize) {
+      img.addEventListener('load', resize);
+      img.dataset._boundResize = '1';
+    }
+  });
+}
 
   function closePanel(){
     if (!expander) return;
@@ -500,8 +524,12 @@
     if (e.key === 'ArrowLeft')   return openAt(Math.max(0, idx - 1));
   });
 })();
-
-  /* TL VIEWER — hidden by default, shows when JS removes [hidden] */
+// Keep height correct on resize/orientation changes
+window.addEventListener('resize', () => {
+  if (expander && expander.classList.contains('open')) {
+    expander.style.maxHeight = (content.scrollHeight + 24) + 'px';
+  }
+});
 
 
 </script>

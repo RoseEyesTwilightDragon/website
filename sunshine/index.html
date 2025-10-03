@@ -168,6 +168,59 @@
     @media (prefers-reduced-transparency: reduce){
       .seam-btn{ background:#fff; color:#111; text-shadow:none; }
     }
+        /* PATCH-TL CSS */
+    .tl-h{ margin:.2rem 0 .6rem; font:600 1rem/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    
+    .tl{
+      position:relative;
+      display:grid;
+      grid-template-columns:repeat(4, 1fr);   /* 4 items; adjust if you add more */
+      gap:12px;
+      align-items:start;
+    }
+    
+    .tl-line{
+      position:absolute; left:0; right:0;
+      top:36px;                       /* aligns through dots */
+      height:2px; background:#ddd; border-radius:2px;
+    }
+    
+    .tl-item{
+      position:relative;
+      display:grid;
+      grid-template-rows:auto auto;
+      gap:6px;
+      background:transparent;
+      border:none; padding:0; margin:0;
+      text-align:left; cursor:pointer;
+    }
+    
+    .tl-date{
+      font:500 .9rem/1 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color:#333;
+    }
+    
+    .tl-dot{
+      position:absolute; left:50%; top:34px;
+      width:10px; height:10px; border-radius:50%;
+      background:#111; transform:translateX(-50%);
+      box-shadow:0 0 0 3px #fff inset, 0 0 0 2px #111;
+    }
+    
+    .tl-thumb{
+      width:100%; aspect-ratio:16/9;
+      object-fit:cover; border-radius:8px; display:block;
+      box-shadow:0 8px 18px rgba(0,0,0,.08);
+    }
+    
+    /* Compact on very small widths; keep within expander without page scroll */
+    @media (max-width:520px){
+      .tl{ grid-template-columns:repeat(2, 1fr); gap:8px; }
+      .tl-line{ top:30px; }
+      .tl-dot{ top:28px; }
+      .tl-thumb{ border-radius:6px; }
+    }
+
 
   </style>
 </head>
@@ -197,13 +250,37 @@
           </div>
           <!-- Timeline -->
           <div id="panel-timeline" hidden>
-            <h3>Timeline</h3>
-            <ol class="muted" style="margin:0; padding-left:1.1rem">
-              <li>We met and never quite stopped laughing.</li>
-              <li>Kyoto — a trip we’d planned forever.</li>
-              <li>A ring, a question, a fast yes.</li>
-              <li>Calls home and a very happy walk back.</li>
-            </ol>
+        <!-- PATCH-TL MARKUP -->
+          <h3 class="tl-h">Timeline</h3>
+          <div class="tl" id="tl">
+            <div class="tl-line" aria-hidden="true"></div>
+          
+            <!-- ITEM -->
+            <button class="tl-item" data-full="pen.jpg">
+              <span class="tl-dot" aria-hidden="true"></span>
+              <span class="tl-date">2019 · Met</span>
+              <img class="tl-thumb" src="pen.jpg" alt="We met" width="320" height="180" loading="lazy">
+            </button>
+          
+            <button class="tl-item" data-full="pen.jpg">
+              <span class="tl-dot" aria-hidden="true"></span>
+              <span class="tl-date">2021 · First trip</span>
+              <img class="tl-thumb" src="pen.jpg" alt="First trip" width="320" height="180" loading="lazy">
+            </button>
+          
+            <button class="tl-item" data-full="pen.jpg">
+              <span class="tl-dot" aria-hidden="true"></span>
+              <span class="tl-date">2025 · Kyoto</span>
+              <img class="tl-thumb" src="pen.jpg" alt="Kyoto" width="320" height="180" loading="lazy">
+            </button>
+          
+            <button class="tl-item" data-full="pen.jpg">
+              <span class="tl-dot" aria-hidden="true"></span>
+              <span class="tl-date">2025 · The yes</span>
+              <img class="tl-thumb" src="pen.jpg" alt="The proposal" width="320" height="180" loading="lazy">
+            </button>
+          </div>
+
           </div>
           <!-- Details -->
           <div id="panel-details" hidden>
@@ -231,6 +308,11 @@
 
   function openPanel(name){
     if (!expander || !content) return;
+    // PATCH-TL RESIZE
+    requestAnimationFrame(() => {
+      const h = content.scrollHeight + 24;   // padding allowance
+      expander.style.maxHeight = h + 'px';
+    });
 
     // Hide all; show the requested panel
     panels.forEach(p => p.hidden = true);
@@ -276,6 +358,47 @@
       closePanel(); current = null;
     }
   });
+</script>
+<!-- PATCH-TL VIEWER -->
+<div id="tl-viewer" hidden
+     style="position:fixed; inset:0; background:rgba(0,0,0,.9); display:grid; place-items:center; z-index:999;">
+  <img id="tl-viewer-img" src="" alt="Timeline photo" style="max-width:92vw; max-height:92vh; object-fit:contain;"/>
+</div>
+
+<script>
+  // Timeline lightbox
+  (function(){
+    const viewer = document.getElementById('tl-viewer');
+    const img    = document.getElementById('tl-viewer-img');
+    const items  = document.querySelectorAll('.tl-item');
+    let idx = -1;
+
+    function openAt(i){
+      const el = items[i];
+      if(!el) return;
+      idx = i;
+      const src = el.getAttribute('data-full') || el.querySelector('.tl-thumb')?.src;
+      img.src = src;
+      viewer.hidden = false;
+    }
+    function close(){
+      viewer.hidden = true;
+      img.src = '';
+    }
+    items.forEach((btn, i)=>{
+      btn.addEventListener('click', ()=> openAt(i));
+      btn.addEventListener('keydown', (e)=> {
+        if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openAt(i); }
+      });
+    });
+    viewer.addEventListener('click', close);
+    document.addEventListener('keydown', (e)=>{
+      if(viewer.hidden) return;
+      if(e.key === 'Escape') close();
+      if(e.key === 'ArrowRight') openAt(Math.min(items.length-1, idx+1));
+      if(e.key === 'ArrowLeft')  openAt(Math.max(0, idx-1));
+    });
+  })();
 </script>
 
 </body>

@@ -170,18 +170,21 @@
     }
         /* PATCH-TL CSS */
 /* TL-ALT CSS (alternating above/below a central line) */
+    /* TL-LAYOUT: centre within expander column */
+#panel-timeline{ justify-self:center; width:100%; }
+
 .tl-h{ margin:.2rem 0 .6rem; font:600 1rem/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; text-align:center; }
 
 .tl{
   position:relative;
   display:grid;
-  grid-template-columns:repeat(4, minmax(140px, 1fr)); /* adjust count if you add items */
+  grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); /* adjust count if you add items */
   gap:16px;
-  justify-content:center;     /* centre the whole strip */
+  justify-content:space-between;    
   justify-items:center;       /* centre each column’s content */
   align-items:center;
   margin-inline:auto;
-  max-width:960px;
+  max-width:none;
 }
 
 .tl-line{
@@ -200,6 +203,10 @@
   background:transparent;
   border:none; padding:0; margin:0;
   cursor:pointer; text-align:center;
+  /* TL-UX: states */
+.tl-item:focus-visible { outline:3px solid #000; outline-offset:4px; border-radius:10px; }
+.tl-item:hover .tl-thumb { filter:brightness(1.05); transform:translateY(-1px); transition:transform .2s ease, filter .2s ease; }
+
 }
 
 /* Dot sits in the line zone (row 2), centered horizontally */
@@ -209,6 +216,13 @@
   background:#111;
   box-shadow:0 0 0 3px #fff inset, 0 0 0 2px #111;
 }
+    /* TL-UX: active dot */
+.tl-dot.active{ 
+  background:#0a0a0a; 
+  box-shadow:0 0 0 4px #fff inset, 
+    0 0 0 3px #000, 
+    0 0 0 8px rgba(0,0,0,.08); }
+
 
 /* Thumbs are 16:9 mini images */
 .tl-thumb{
@@ -393,49 +407,67 @@
       closePanel(); current = null;
     }
   });
+// ===== Timeline lightbox =====
+(function(){
+  const viewer = document.getElementById('tl-viewer');
+  const img    = document.getElementById('tl-viewer-img');
 
-  // ===== Timeline lightbox =====
-  (function(){
-    const viewer = document.getElementById('tl-viewer');
-    const img    = document.getElementById('tl-viewer-img');
-    const items  = document.querySelectorAll('.tl-item');
-    let idx = -1;
+  // All clickable timeline items and their dots
+  const items  = Array.from(document.querySelectorAll('.tl-item'));
+  const dots   = items.map(it => it.querySelector('.tl-dot'));
 
-    function openAt(i){
-      const el = items[i];
-      if(!el || !viewer || !img) return;
-      idx = i;
-      const src = el.getAttribute('data-full') || el.querySelector('.tl-thumb')?.src;
-      img.src = src;
-      viewer.removeAttribute('hidden');   // show
-    }
-    function close(){
-      if(!viewer || !img) return;
-      viewer.setAttribute('hidden','');   // hide
-      img.src = '';
-    }
+  let idx = -1;
 
-    items.forEach((btn, i)=>{
-      btn.addEventListener('click', ()=> openAt(i));
-      btn.addEventListener('keydown', (e)=> {
-        if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openAt(i); }
-      });
+  function setActiveDot(i){
+    dots.forEach(d => d && d.classList.remove('active'));
+    const d = dots[i];
+    if (d) d.classList.add('active');
+  }
+
+  function openAt(i){
+    const el = items[i];
+    if (!el || !viewer || !img) return;
+
+    idx = i;
+    const src = el.getAttribute('data-full') || el.querySelector('.tl-thumb')?.src;
+    img.src = src;
+
+    // show viewer and mark active dot
+    viewer.removeAttribute('hidden');
+    setActiveDot(i);
+  }
+
+  function close(){
+    if (!viewer || !img) return;
+    viewer.setAttribute('hidden','');
+    img.src = '';
+    setActiveDot(-1); // clear highlight
+  }
+
+  // Click/keyboard on items
+  items.forEach((btn, i)=>{
+    btn.addEventListener('click', ()=> openAt(i));
+    btn.addEventListener('keydown', (e)=> {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openAt(i); }
     });
+  });
 
-    if (viewer){
-      viewer.addEventListener('click', (e)=>{
-        // click outside the image closes
-        if (!e.target.closest('#tl-viewer-img')) close();
-      });
-    }
-
-    document.addEventListener('keydown', (e)=>{
-      if (!viewer || viewer.hasAttribute('hidden')) return;
-      if (e.key === 'Escape') close();
-      if (e.key === 'ArrowRight') openAt(Math.min(items.length-1, idx+1));
-      if (e.key === 'ArrowLeft')  openAt(Math.max(0, idx-1));
+  // Click outside image closes
+  if (viewer){
+    viewer.addEventListener('click', (e)=>{
+      if (!e.target.closest('#tl-viewer-img')) close();
     });
-  })();
+  }
+
+  // Keyboard nav while open
+  document.addEventListener('keydown', (e)=>{
+    if (!viewer || viewer.hasAttribute('hidden')) return;
+    if (e.key === 'Escape')      return close();
+    if (e.key === 'ArrowRight')  return openAt(Math.min(items.length - 1, idx + 1));
+    if (e.key === 'ArrowLeft')   return openAt(Math.max(0, idx - 1));
+  });
+})();
+
   /* TL VIEWER — hidden by default, shows when JS removes [hidden] */
 
 

@@ -23,24 +23,22 @@
   <style>
     :root{
       --bg:#fff; --fg:#111; --muted:#6b6b6b; --ring:#000;
-      --gap:12px;             /* space between items */
+      --gap:0px;             /* space between items */
       --expander-max:160px;   /* expanded gap height */
       --radius:14px;
     }
     html,body{height:100%; margin:0; background:var(--bg); color:var(--fg); -webkit-font-smoothing:antialiased}
-    /* Outer frame that ALWAYS fits on screen:
-       natural total height ≈ 0.75 * width for four 16:9 tiles (1 large + 3 small).
-       Constrain width to <= 133.333vh to avoid vertical overflow. */
+    /* STEP-06 FIT-VIEWPORT */
     .frame{
+      /* 1 hero + 3 minis (all 16:9) → width ≤ 133.333vh prevents vertical overflow */
       width:min(100vw, 133.333dvh);
-      margin-inline:auto;
       height:100dvh;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:clamp(8px, 2vw, 24px);
+      margin-inline:auto;
+      display:flex; align-items:center; justify-content:center;
+      padding:clamp(8px, 2vw, 24px); /* set to 0 for true edge-to-edge */
       box-sizing:border-box;
     }
+
     .stack{
       width:100%;
       display:grid;
@@ -63,10 +61,9 @@
 
     .hero img, .thumb img{
       width:100%; height:100%; object-fit:cover; display:block;
-      filter:saturate(1.02);
-      transform:scale(1.005);
-      transition:transform .6s ease, opacity .6s ease;
-      opacity:0;
+      object-position:center;
+      transform:none;
+      opacity:1;
     }
     .ready .hero img, .ready .thumb img{ opacity:1; transform:none; }
     @media (prefers-reduced-motion: reduce){
@@ -94,19 +91,18 @@
     .chip:focus-visible{ outline:3px solid var(--ring); outline-offset:2px; }
 
     /* Expander gap between hero and thumbs (slides thumbs down when opened) */
+    /* STEP-04 EXPANDER-TIGHT */
     .expander{
       overflow:hidden;
       max-height:0;
-      border-radius:calc(var(--radius) - 6px);
-      background:#fafafa;
-      border:1px solid #eee;
-      padding:0 14px;
+      padding:0;
+      border:0;
       transition:max-height .45s ease, padding .45s ease, border-color .45s ease, background .45s ease;
     }
     .expander.open{
-      max-height:var(--expander-max);
-      padding:12px 14px;
-      border-color:#e8e8e8;
+      padding:14px 16px;
+      border:1px solid #e8e8e8;
+      background:#fafafa;
     }
     .expander > .content{
       display:grid;
@@ -129,6 +125,34 @@
       .chip{ font-size:.85rem; padding:.45rem .7rem }
       .expander > .content{ grid-template-columns:1fr; gap:10px }
     }
+    /* STEP-03 SEAM-OVERLAY (CSS) — paste just above </style> */
+    .hero{ position:relative; }
+
+    .seam-overlay{
+      position:absolute; left:0; right:0; bottom:-1px;
+      display:grid; grid-template-columns:repeat(3,1fr);
+      align-items:end; gap:0; padding:0 1.5%;
+      z-index:5; pointer-events:none;
+    }
+
+    .seam-btn{
+      pointer-events:auto;
+      margin:0 auto .5rem;
+      width:92%;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.65);
+      background:rgba(255,255,255,.08);
+      backdrop-filter:saturate(120%) blur(2px);
+      color:#fff;
+      font:600 .95rem/1 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      padding:.7rem 1rem;
+      text-shadow:0 1px 2px rgba(0,0,0,.35);
+    }
+    .seam-btn:focus-visible{ outline:3px solid #fff; outline-offset:2px; }
+    @media (prefers-reduced-transparency: reduce){
+      .seam-btn{ background:#fff; color:#111; text-shadow:none; }
+    }
+
   </style>
 </head>
 <body>
@@ -220,14 +244,15 @@
 
       // Toggle behavior: clicking the same chip closes the expander
       let current = null;
-      document.querySelectorAll('.chip').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const name = btn.dataset.target;
-          if (current === name && expander.classList.contains('open')) {
-            closePanel(); current = null; return;
-          }
-          current = name; openPanel(name);
-        });
+      document.querySelectorAll('.seam-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const name = btn.dataset.target;
+        if (current === name && expander.classList.contains('open')) {
+          closePanel(); current = null; return;
+        }
+        current = name; openPanel(name);
+      });
+      });
 
         // Keyboard "toggle on Space/Enter" is default for <button>, so no extra handlers needed
       });

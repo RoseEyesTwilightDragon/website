@@ -345,4 +345,151 @@ export default function UltimateBrandTimeline() {
   }, []);
 
   const onShare = useCallback((m: Milestone) => {
-    const url = `${location.origin}${lo
+    const url = `${location.origin}${location.pathname}#${m.id}`;
+    navigator.clipboard.writeText(url).catch(() => {});
+  }, []);
+
+  const onNarrate = useCallback((m: Milestone) => {
+    // Only used as a delightful accessibility add-on. Avoid in loud environments.
+    if (!("speechSynthesis" in window)) return;
+    const synth = window.speechSynthesis;
+    if (speakingId === m.id) {
+      synth.cancel();
+      setSpeakingId(null);
+      return;
+    }
+    synth.cancel();
+    const u = new SpeechSynthesisUtterance(`${m.title}. ${m.body}. Dated ${fmt(m.date)}.`);
+    u.rate = 1; u.pitch = 1; u.volume = 1;
+    u.onend = () => setSpeakingId(null);
+    setSpeakingId(m.id);
+    synth.speak(u);
+  }, [speakingId]);
+
+  const resetFilters = useCallback(() => {
+    setQuery("");
+    setTag("All");
+    const ys = data.map((d) => d.year);
+    setYearRange([Math.min(...ys), Math.max(...ys)]);
+  }, [data]);
+
+  return (
+    <div className="relative">
+      {/* Progress bar */}
+      <motion.div style={{ scaleX: barScaleX }} className="fixed left-0 right-0 top-0 z-50 h-0.5 origin-left bg-gradient-to-r from-primary to-primary/40" aria-hidden />
+
+      {/* 3D background (kept light) */}
+      {!prefersReduced && <BackgroundCanvas />}
+
+      {/* Hero */}
+      <section className="relative z-10 mx-auto max-w-6xl px-4 pt-20 md:px-6 md:pt-28">
+        <div className="mb-8 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-primary to-primary/60 text-white shadow-md"><span className="text-lg font-bold">B</span></div>
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight md:text-4xl">Our Journey</h1>
+              <p className="text-sm text-muted-foreground md:text-base">Milestones from launch to today.</p>
+            </div>
+          </div>
+          <div className="hidden gap-2 md:flex">
+            <Button variant="outline" onClick={jumpToTop} className="gap-1.5"><ArrowUp className="h-4 w-4" />Top</Button>
+            <Button onClick={jumpToLatest} className="gap-1.5"><ArrowDown className="h-4 w-4" />Latest</Button>
+          </div>
+        </div>
+
+        {/* Search + Filters */}
+        <div className="mb-6 grid grid-cols-1 gap-3 md:grid-cols-[minmax(300px,1fr)_1fr_auto] md:items-center">
+          <div className="relative w-full">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search milestones, years, tags…" className="w-full rounded-2xl border bg-background px-9 py-3 text-sm outline-none ring-0 transition focus:border-primary focus:ring-2 focus:ring-primary/30" aria-label="Search timeline" />
+          </div>
+
+          <Tabs value={tag} onValueChange={(v) => setTag(v as any)} className="w-full md:w-auto">
+            <TabsList className="grid w-full grid-cols-5 rounded-2xl md:w-auto md:grid-cols-5">
+              {(["All", "Product", "Sustainability", "Award", "Global"] as const).map((t) => (
+                <TabsTrigger key={t} value={t} className="rounded-xl text-xs md:text-sm">{t}</TabsTrigger>
+              ))}
+            </TabsList>
+            <TabsContent value={tag} className="sr-only" />
+          </Tabs>
+
+          <div className="flex flex-col gap-1 md:items-end">
+            <label className="text-xs text-muted-foreground">Year range</label>
+            <div className="flex w-full items-center gap-3 md:w-64">
+              <span className="text-xs tabular-nums text-muted-foreground">{yearRange[0]}</span>
+              <Slider min={Math.min(...data.map((d) => d.year))} max={Math.max(...data.map((d) => d.year))} step={1} value={[yearRange[0], yearRange[1]]} onValueChange={(v) => setYearRange([v[0], v[1]] as [number, number])} className="w-full" />
+              <span className="text-xs tabular-nums text-muted-foreground">{yearRange[1]}</span>
+            </div>
+          </div>
+
+          <div className="md:col-span-3 flex flex-wrap gap-2">
+            <Button variant="outline" onClick={resetFilters}>Reset</Button>
+            <Button variant="secondary" onClick={() => window.print()}>Print</Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Timeline */}
+      <section className="relative z-10 mx-auto max-w-6xl px-4 md:px-6">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[6rem_1fr]">
+          <YearRail years={yearsAll} active={activeYear} onJump={jumpToYear} />
+
+          <div className="relative flex flex-col gap-12">
+            <div className="pointer-events-none absolute left-4 top-0 hidden h-full w-px bg-gradient-to-b from-transparent via-border to-transparent lg:block" />
+
+            {grouped.length === 0 && (
+              <Card className="border-dashed">
+                <CardHeader>
+                  <CardTitle>No results</CardTitle>
+                  <CardDescription>Try adjusting filters or search.</CardDescription>
+                </CardHeader>
+              </Card>
+            )}
+
+            {grouped.map(({ year, items }) => (
+              <div key={year} className="space-y-8">
+                <div className="sticky top-16 z-10 -mx-2 flex items-center gap-3 px-2 backdrop-blur md:top-20">
+                  <div className="h-6 w-1 rounded bg-primary/70" />
+                  <h2 className="text-lg font-semibold tracking-tight text-primary/90">{year}</h2>
+                </div>
+                <div className="space-y-12">
+                  {items.map((m) => (
+                    <TimelineCard key={m.id} m={m} scrollYProgress={smoothProgress} onShare={onShare} onNarrate={onNarrate} narrated={speakingId === m.id} />
+                  ))}
+                </div>
+              </div>
+            ))}
+
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-muted/30 p-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Integrate with your CMS & analytics.</p>
+                <p className="text-sm">This component accepts your data and brand tokens.</p>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={jumpToTop} className="gap-1.5"><ArrowUp className="h-4 w-4" />Top</Button>
+                <Button onClick={jumpToLatest} className="gap-1.5"><ArrowDown className="h-4 w-4" />Latest</Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Print tweaks */}
+      <style>{`
+        @media print {
+          video { display: none !important; }
+          .sticky { position: static !important; }
+          .fixed { position: static !important; }
+          .pointer-events-none { pointer-events: none !important; }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+// -----------------------------
+// Usage notes:
+// - Drop <UltimateBrandTimeline /> into a Next.js page or any React view.
+// - Provide real data by injecting window.__MILESTONES__ = [...]; before hydration, or replace DEMO.
+// - Recommended deployment: Vercel Edge for fast TTFB and global caching.
+// - Add analytics (e.g., Vercel Analytics or Plausible) at the app shell.

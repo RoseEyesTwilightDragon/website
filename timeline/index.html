@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Premier Timeline</title>
+<style>
+  :root{
+    --bg:#0b0b0c; --panel:#111214; --ink:#e7e7e9; --muted:#a4a6aa; --line:#2a2c31; --accent:#7dd3fc;
+    --card:#15171a; --ring:#9dd7ff;
+  }
+  html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial}
+  .wrap{block-size:100dvh;display:grid;grid-template-rows:auto 1fr}
+  header{padding:14px 18px;border-bottom:1px solid #1a1b1f;background:var(--panel)}
+  header h1{margin:0;font:600 18px/1.2 system-ui}
+
+  /* Timeline viewport */
+  .tl-viewport{
+    position:relative;overflow:hidden;background:linear-gradient(#0e0f12,#0b0b0c);
+  }
+  /* Scroll/zoom surface (we transform this) */
+  .tl-surface{position:absolute;inset:0;transform-origin:0 0}
+  /* Cards layer (DOM) sits above the SVG drawing layer */
+  .cards{position:absolute;inset:0;pointer-events:auto}
+  .graph{position:absolute;inset:0;z-index:0;pointer-events:none;display:block}
+
+  /* Event cards */
+  .card{
+    position:absolute;translate:-50% 0; /* anchor by card center */
+    width:260px; max-width:38vw;
+    background:var(--card); border:1px solid #1f2126; border-radius:14px;
+    box-shadow:0 10px 30px rgba(0,0,0,.35);
+    padding:12px; display:grid; gap:8px;
+  }
+  .card h3{margin:0;font:600 15px/1.2 system-ui}
+  .card time{color:var(--muted);font:500 12px/1 system-ui}
+  .media{display:block; background:#0b0b0c; border-radius:10px; overflow:hidden}
+  .media img{display:block; max-width:100%; height:auto; object-fit:contain}
+  .card p{margin:0;color:#c5c6ca;font-size:14px}
+
+  /* Focus/hover */
+  .card:focus-visible{outline:3px solid var(--ring); outline-offset:3px}
+  .card:hover{box-shadow:0 16px 38px rgba(0,0,0,.5)}
+
+  /* Lightbox */
+  .lightbox[hidden]{display:none !important}
+  .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.9);display:grid;place-items:center;z-index:999}
+  .lightbox img{max-width:92vw;max-height:92vh;object-fit:contain}
+
+  /* Axis labels */
+  .tickLabel{fill:#c8c9cc;font:500 12px/1 system-ui}
+  @media (prefers-reduced-motion:reduce){
+    .graph path,.graph line{transition:none !important}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><h1>Premier Timeline</h1></header>
+
+  <main class="tl-viewport" id="viewport" aria-label="Timeline">
+    <div class="tl-surface" id="surface" role="group" aria-roledescription="zoomable time surface">
+      <!-- SVG axis + connectors -->
+      <svg class="graph" id="graph" aria-hidden="true"></svg>
+      <!-- HTML cards layer -->
+      <div class="cards" id="cards" role="list"></div>
+    </div>
+  </main>
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" hidden>
+  <img id="lightImg" alt="">
+</div>
+
+<script>
+/* ---------- Data (replace with your own) ---------- */
+const events = [
+  { id:"e1", title:"Met",      date:"2019-03-12", media:"https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1200", summary:"The day paths crossed." },
+  { id:"e2", title:"First Trip", date:"2021-06-21", media:"https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1200", summary:"Sunburns and laughter." },
+  { id:"e3", title:"Kyoto",    date:"2025-04-10", media:"https://images.unsplash.com/photo-1563213126-a4273aed2012?w=1200", summary:"Torii gates and tea." },
+  { id:"e4", title:"Engaged",  date:"2025-08-12", media:"https://images.unsplash.com/photo-1519223400710-6da9e1b777ea?w=1200", summary:"The easiest yes." },
+  { id:"e5", title:"Today",    date:new Date().toISOString().slice(0,10), media:"https://images.unsplash.com/photo-1482192596544-9eb780fc7f66?w=1200", summary:"Onward." }
+];
+
+/* ---------- Utilities ---------- */
+const byDate = (a,b)=> new Date(a.date) - new Date(b.date);
+events.sort(byDate);
+
+const MIN_PAD_DAYS = 60; // add breathing space left/right
+
+function extentDates(items){
+  const min = new Date(items[0].date), max = new Date(items[items.length-1].date);
+  const pad = MIN_PAD_DAYS * 864e5;
+  return [new Date(min - pad), new Date(+max + pad)];
+}
+function scaleTime(domain, range){
+  // linear t -> x
+  const [d0, d1] = domain.map(d=>+d);
+  const [r0, r1] = range;
+  const m = (r1 - r0)/(d1 - d0);
+  return t => r0 + ( (+t) - d0 ) * m;
+}
+
+/* ---------- Layout state ---------- */
+const viewport = document.getElementById('viewport');
+const surface  = document.getElementById('surface');
+const svg      = document.getElementById('graph');
+const cardsEl  = document.getElementById('cards');
+
+let zoom = 1;     // CSS scale of the surface
+let panX = 0;     // CSS translateX of the surface
+const AXIS_Y = 72;  // px from top of surface where the axis sits
+
+/* ---------- Build cards ---------- */
+const cardMap = new Map();
+for (const ev of events){
+  const card = document.createElement('article');
+  card.className = 'card';
+  card.tabIndex = 0;
+  card.role = 'listitem';
+  card.innerHTML = `
+    <time datetime="${ev.date}">${new Date(ev.date).toLocaleDateString(undefined,{year:'numeric', month:'short', day:'numeric'})}</time>
+    <h3>${ev.title}</h3>
+    ${ev.media ? `<a class="media" href="#" data-id="${ev.id}"><img alt="${ev.title}" src="${ev.media}"></a>` : ''}
+    ${ev.summary ? `<p>${ev.summary}</p>` : ''}
+  `;
+  cardsEl.appendChild(card);
+  cardMap.set(ev.id, card);
+}
+
+/* ---------- Lightbox ---------- */
+const lightbox = document.getElementById('lightbox');
+const lightImg = document.getElementById('lightImg');
+cardsEl.addEventListener('click', e=>{
+  const a = e.target.closest('a.media'); if(!a) return;
+  e.preventDefault();
+  const id = a.dataset.id;
+  const ev = events.find(x=>x.id===id);
+  if(!ev) return;
+  lightImg.src = ev.media;
+  lightImg.alt = ev.title;
+  lightbox.hidden = false;
+});
+lightbox.addEventListener('click', ()=> { lightbox.hidden = true; lightImg.src=""; });
+document.addEventListener('keydown', e=> { if(e.key==='Escape' && !lightbox.hidden){ lightbox.hidden = true; lightImg.src=""; }});
+
+/* ---------- Draw axis + connectors ---------- */
+const NS = 'http://www.w3.org/2000/svg';
+function clearSVG(){ while(svg.firstChild) svg.removeChild(svg.firstChild); }
+function elNS(name, attrs){ const n=document.createElementNS(NS, name); for(const k in attrs) n.setAttribute(k, attrs[k]); return n; }
+
+function layoutAndDraw(){
+  // size SVG to surface’s pixel box (after transforms applied at container level)
+  const rect = viewport.getBoundingClientRect();
+  const width  = Math.max(rect.width, 800);   // min visual width
+  const height = Math.max(rect.height, 400);  // min visual height
+  svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+  svg.setAttribute('width', width);
+  svg.setAttribute('height', height);
+  clearSVG();
+
+  // compute x scale by date
+  const [d0,d1] = extentDates(events);
+  const scaleX = scaleTime([d0,d1], [48, width-48]); // keep margin
+
+  // 1) Axis
+  const axis = elNS('line', {x1:0, y1:AXIS_Y, x2:width, y2:AXIS_Y, stroke:'#3a3d44', 'stroke-width':1.25, 'vector-effect':'non-scaling-stroke'});
+  svg.appendChild(axis);
+
+  // Ticks (monthly or quarterly based on span)
+  const spanDays = (d1 - d0)/864e5;
+  const stepDays = spanDays > 1500 ? 90 : 30;
+  for (let t = +d0; t <= +d1; t += stepDays*864e5){
+    const x = scaleX(t);
+    const tick = elNS('line', {x1:x, y1:AXIS_Y-6, x2:x, y2:AXIS_Y+6, stroke:'#4a4d55', 'stroke-width':1, 'vector-effect':'non-scaling-stroke'});
+    svg.appendChild(tick);
+    // labels (at most ~12)
+    if ((t - +d0) % (stepDays*864e5*2) === 0){
+      const label = elNS('text', {x, y:AXIS_Y-10, class:'tickLabel', 'text-anchor':'middle'});
+      label.textContent = new Date(t).toLocaleDateString(undefined,{year:'2-digit', month:'short'});
+      svg.appendChild(label);
+    }
+  }
+
+  // 2) Place cards + connectors
+  for (const ev of events){
+    const card = cardMap.get(ev.id);
+    const x = scaleX(new Date(ev.date));
+    // position card (below axis, stagger slightly by index)
+    const row = (events.indexOf(ev) % 2); // 0/1 stagger
+    const y = AXIS_Y + 22 + (row ? 220 : 80); // simple stagger to reduce overlap
+    card.style.left = `${x}px`;
+    card.style.top  = `${y}px`;
+
+    // connector curve from axis to card top-center
+    const cardRect = { left:x - 130, top:y, width:260, height:card.offsetHeight || 180 };
+    const cx = x; // center x
+    const endY = y - 10; // meet just above card
+    const c1y = AXIS_Y + 12, c2y = endY - 18;
+
+    const path = elNS('path', {
+      d:`M ${x} ${AXIS_Y} C ${x} ${c1y} ${cx} ${c2y} ${cx} ${endY}`,
+      fill:'none', stroke:'#86e1ff', 'stroke-width':1.5, 'vector-effect':'non-scaling-stroke', 'stroke-linecap':'round'
+    });
+    // subtle shadow under the accent stroke
+    const shadow = elNS('path', {
+      d:`M ${x} ${AXIS_Y} C ${x} ${c1y} ${cx} ${c2y} ${cx} ${endY}`,
+      fill:'none', stroke:'rgba(0,0,0,.45)', 'stroke-width':4, 'vector-effect':'non-scaling-stroke', 'stroke-linecap':'round', opacity:.35
+    });
+    svg.appendChild(shadow); svg.appendChild(path);
+
+    // dot on the axis
+    const dot = elNS('circle', {cx:x, cy:AXIS_Y, r:4, fill:'#86e1ff'});
+    const dotRing = elNS('circle', {cx:x, cy:AXIS_Y, r:8, fill:'none', stroke:'rgba(134,225,255,.25)', 'stroke-width':2, 'vector-effect':'non-scaling-stroke'});
+    svg.appendChild(dotRing); svg.appendChild(dot);
+  }
+}
+
+/* ---------- Pan & Zoom (nice but optional) ---------- */
+function applyTransform(){
+  surface.style.transform = `translate(${panX}px, 0) scale(${zoom})`;
+}
+viewport.addEventListener('wheel', (e)=>{
+  if (e.ctrlKey || e.metaKey){
+    e.preventDefault();
+    const k = Math.exp(-e.deltaY * 0.0015);
+    const prev = zoom;
+    zoom = Math.min(3, Math.max(0.5, zoom * k));
+    // zoom around cursor x
+    const rect = viewport.getBoundingClientRect();
+    const cx = e.clientX - rect.left;
+    panX = cx - (cx - panX) * (zoom/prev);
+    applyTransform();
+  }
+}, {passive:false});
+
+// drag to pan
+let dragging=false, lastX=0;
+viewport.addEventListener('pointerdown', e=>{ dragging=true; lastX=e.clientX; viewport.setPointerCapture(e.pointerId); });
+viewport.addEventListener('pointermove', e=>{ if(!dragging) return; panX += (e.clientX-lastX); lastX=e.clientX; applyTransform(); });
+viewport.addEventListener('pointerup',   e=>{ dragging=false; });
+
+/* ---------- Observe and draw ---------- */
+const ro = new ResizeObserver(()=> layoutAndDraw());
+ro.observe(viewport);
+
+// initial
+applyTransform();
+layoutAndDraw();
+</script>
+</body>
+</html>

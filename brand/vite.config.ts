@@ -6,7 +6,7 @@ import path from 'node:path'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/RoseEyesTwilightDragon/',  // <<— required for GitHub Pages project sites
+  base: '/website/',  // <<— required for GitHub Pages project sites
   resolve: {
     alias: { '@': path.resolve(__dirname, 'src') }
   }

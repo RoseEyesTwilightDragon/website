@@ -1,3 +1,5 @@
+# File: .github/workflows/pages-vite.yml
+# Builds from the brand/ folder, adds SPA 404, deploys to GitHub Pages.
 name: Deploy Vite to GitHub Pages
 on:
   push:
@@ -19,24 +21,30 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
           cache-dependency-path: brand/package-lock.json
+
       - name: Install
         working-directory: brand
         run: npm ci || npm i
+
       - name: Build
         working-directory: brand
         run: npm run build
+
       - name: Create SPA fallback (404 -> index)
         run: cp brand/dist/index.html brand/dist/404.html
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./brand/dist
+
   deploy:
     environment:
       name: github-pages

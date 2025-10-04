@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ultimate Timeline — GitHub Pages demo</title>
+  <meta name="description" content="A zero-dependency, accessible, zoomable SVG timeline you can host on GitHub Pages. Drop-in web component: <ultimate-timeline>." />
+  <style>
+    :root{
+      --bg: #0b0c0e;
+      --panel: #121418;
+      --ink: #e9edf1;
+      --muted: #9aa4b2;
+      --brand: #8ad7ff;
+      --accent: #ffd580;
+      --good: #8affc1;
+      --bad: #ff9aa2;
+      --grid: #252a33;
+      --focus: #94c6ff;
+      --shadow: 0 2px 20px rgba(0,0,0,.35);
+    }
+    @media (prefers-color-scheme: light) {
+      :root{--bg:#ffffff;--panel:#f6f7f9;--ink:#0b0c0e;--muted:#4b5563;--grid:#e5e7eb;--shadow:0 2px 16px rgba(0,0,0,.08)}
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial}
+    header{position:sticky;top:0;z-index:2;backdrop-filter:saturate(140%) blur(8px);background:color-mix(in oklab, var(--bg) 70%, transparent 30%);border-bottom:1px solid var(--grid)}
+    .wrap{max-width:1100px;margin:auto;padding:16px}
+    h1{margin:0;font-size:clamp(20px, 2.4vw, 28px)}
+    main{display:grid;gap:16px;padding-block:16px}
+
+    /* Web component host demo card */
+    .card{background:var(--panel);border:1px solid var(--grid);border-radius:16px;box-shadow:var(--shadow)}
+    .card h2{margin:0;font-size:20px}
+    .card .body{padding:16px}
+
+    /* Timeline component defaults */
+    ultimate-timeline{display:block;block-size:70vh;min-block-size:420px}
+    ultimate-timeline .surface{display:block;inline-size:100%;block-size:100%;border-radius:16px;overflow:hidden;border:1px solid var(--grid);background:linear-gradient(180deg, color-mix(in oklab, var(--panel) 60%, transparent 40%), var(--panel)),
+      repeating-linear-gradient(90deg, transparent 0 79px, color-mix(in oklab,var(--grid) 70%, transparent 30%) 79px 80px)}
+    ultimate-timeline svg{display:block;inline-size:100%;block-size:100%}
+    .legend{display:flex;gap:12px;flex-wrap:wrap;font-size:14px;color:var(--muted)}
+    .legend .dot{inline-size:10px;block-size:10px;border-radius:99px;display:inline-block;margin-right:6px;vertical-align:middle}
+
+    /* Tooltip / sheet */
+    .sheet{position:fixed;inset:auto 16px 16px auto;max-inline-size:min(480px, 90vw);background:var(--panel);border:1px solid var(--grid);border-radius:14px;box-shadow:var(--shadow);padding:14px 16px;display:none}
+    .sheet.open{display:block}
+    .sheet h3{margin:0 0 4px 0;font-size:18px}
+    .sheet time{color:var(--muted);font-size:14px}
+    .sheet .media{margin-top:8px}
+    .sheet .media img, .sheet .media video{max-inline-size:100%;border-radius:10px;border:1px solid var(--grid)}
+    .actions{display:flex;gap:8px;margin-top:10px}
+    .btn{appearance:none;border:1px solid var(--grid);background:var(--panel);color:var(--ink);padding:8px 10px;border-radius:10px;cursor:pointer}
+    .btn:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+
+    /* Accessibility helpers */
+    .sr-only{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+    .kbd{font:12px ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;border:1px solid var(--grid);padding:.1em .35em;border-radius:6px;background:color-mix(in oklab, var(--panel) 60%, transparent 40%)}
+
+    footer{color:var(--muted);border-top:1px solid var(--grid)}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>Ultimate Timeline <span style="color:var(--muted);font-weight:400">— zero‑dependency, SVG, accessible, fast</span></h1>
+    </div>
+  </header>
+  <main class="wrap">
+    <section class="card">
+      <div class="body">
+        <h2>Demo</h2>
+        <p>Drag to pan. <span class="kbd">Ctrl</span>/<span class="kbd">⌘</span> + wheel to zoom. <span class="kbd">Tab</span> to focus events, <span class="kbd">Enter</span> to open, <span class="kbd">Esc</span> to close. Toggle orientation with the button below.</p>
+        <div class="legend" id="legend"></div>
+        <ultimate-timeline id="utl" data-mode="horizontal" aria-label="Interactive timeline of demo events"></ultimate-timeline>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn" id="toggleMode">Toggle orientation</button>
+          <button class="btn" id="fitAll">Fit all</button>
+          <button class="btn" id="todayBtn">Jump to Today</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="body">
+        <h2>How to use on GitHub Pages</h2>
+        <ol>
+          <li>Fork this file into a repo as <code>index.html</code>.</li>
+          <li>Enable GitHub Pages → Deploy from branch → root folder → main.</li>
+          <li>Commit your data inside the <code>window.TIMELINE_DATA</code> block below (or load from a JSON file via <code>data-src</code> attribute).</li>
+        </ol>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      Built with ❤️ — no frameworks required. Works in Astro/React/etc. via native Web Component.
+    </div>
+  </footer>
+
+  <!-- Data: customise me. You can also set <ultimate-timeline data-src="/data.json"> -->
+  <script>
+    // Schema: items (points) and eras (ranges). Dates in ISO; times supported. Lanes are rows (or columns in vertical).
+    window.TIMELINE_DATA = {
+      lanes: [
+        { id: "life", label: "Life", color: "#8ad7ff" },
+        { id: "work", label: "Work", color: "#ffd580" },
+        { id: "travel", label: "Travel", color: "#8affc1" },
+        { id: "misc", label: "Misc", color: "#ff9aa2" }
+      ],
+      eras: [
+        { id: "era1", lane: "life", start: "2010-01-01", end: "2014-06-01", label: "Uni years" },
+        { id: "era2", lane: "work", start: "2015-02-01", end: "2020-03-01", label: "Early career" },
+        { id: "era3", lane: "travel", start: "2023-10-01", end: "2024-03-01", label: "Asia trip" }
+      ],
+      items: [
+        { id: "i1", lane: "life", date: "2012-05-12", title: "Met Sam", detail: "A sunny day in London.", link: "https://example.com" },
+        { id: "i2", lane: "work", start: "2018-01-01", end: "2018-12-31", title: "Big project", detail: "Delivered v1.0", color: "#f0abfc" },
+        { id: "i3", lane: "travel", date: "2024-02-18", title: "Kyoto", media: { src: "https://images.unsplash.com/photo-1549692520-acc6669e2f0c?w=1200", alt: "Fushimi Inari" } },
+        { id: "i4", lane: "misc", date: new Date().toISOString().slice(0,10), title: "Today", detail: "Auto-generated demo point for today." },
+        { id: "i5", lane: "work", start: "2025-06-01", end: "2025-10-01", title: "Ship Sunshine", detail: "Milestone span with connectors." }
+      ]
+    };
+  </script>
+
+  <script>
+  // Ultimate Timeline — zero dependency Web Component (SVG based)
+  (function(){
+    const niceDate = (d)=> new Date(d).toLocaleDateString(document.documentElement.lang || 'en-GB', { year:'numeric', month:'short', day:'2-digit'});
+    const clamp = (v,min,max)=> Math.max(min, Math.min(max, v));
+
+    class UltimateTimeline extends HTMLElement{
+      constructor(){
+        super();
+        this.attachShadow({mode:'open'});
+        this.state = { scale:1, translate:0, orientation: this.getAttribute('data-mode')||'horizontal', focusIndex:0 };
+        this.data = { lanes:[], eras:[], items:[] };
+        this.bounds = { start: null, end: null };
+      }
+      connectedCallback(){
+        this.shadowRoot.innerHTML = `
+          <div class="surface" part="surface">
+            <svg part="svg" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>
+          </div>
+          <div class="sheet" role="dialog" aria-modal="true" aria-live="polite"></div>
+          <style>
+            :host{contain:content;}
+            .surface{position:relative}
+            svg{touch-action:none}
+            .tick{font:12px ui-sans-serif; fill: var(--muted)}
+            .laneLabel{font:13px ui-sans-serif; fill: var(--muted)}
+            .event{cursor:pointer}
+            .event:focus-visible{outline:2px solid var(--focus); outline-offset:2px}
+            .axis{stroke: var(--grid); stroke-width:1}
+            .connector{stroke: color-mix(in oklab, var(--muted) 70%, transparent 30%); stroke-width:1}
+            .era{fill: color-mix(in oklab, var(--brand) 25%, transparent 75%)}
+          </style>
+        `;
+        // Load data
+        const src = this.getAttribute('data-src');
+        if(src){
+          fetch(src).then(r=>r.json()).then(json=>{this.setData(json)}).catch(console.error);
+        } else {
+          // global injected
+          this.setData(window.TIMELINE_DATA || this.data);
+        }
+        this._bindInteractions();
+      }
+      setData(d){
+        this.data = d; 
+        // Compute bounds
+        const allDates = [];
+        for(const it of d.items){
+          if(it.date) allDates.push(new Date(it.date));
+          if(it.start) allDates.push(new Date(it.start));
+          if(it.end) allDates.push(new Date(it.end));
+        }
+        for(const er of (d.eras||[])){
+          allDates.push(new Date(er.start)); allDates.push(new Date(er.end));
+        }
+        if(allDates.length===0){
+          const now = new Date(); allDates.push(new Date(now.getFullYear()-1,0,1), new Date(now.getFullYear()+1,11,31));
+        }
+        const min = new Date(Math.min(...allDates));
+        const max = new Date(Math.max(...allDates));
+        this.bounds.start = min; this.bounds.end = max;
+        this.render();
+        // Expose legend if present in page
+        const legend = document.getElementById('legend');
+        if(legend && d.lanes){ legend.innerHTML = d.lanes.map(l=>`<span><span class="dot" style="background:${l.color||'var(--brand)'}"></span>${l.label}</span>`).join(' ')}
+      }
+      setOrientation(mode){ this.state.orientation = mode; this.render(); }
+
+      _bindInteractions(){
+        const svg = this.shadowRoot.querySelector('svg');
+        const sheet = this.shadowRoot.querySelector('.sheet');
+        let isPanning=false, lastPos=0;
+        svg.addEventListener('pointerdown', (e)=>{ isPanning=true; lastPos = this._primaryCoord(e); svg.setPointerCapture(e.pointerId); });
+        svg.addEventListener('pointerup', (e)=>{ isPanning=false; svg.releasePointerCapture(e.pointerId); });
+        svg.addEventListener('pointerleave', ()=>{ isPanning=false });
+        svg.addEventListener('pointermove', (e)=>{ if(isPanning){ const delta = this._primaryCoord(e) - lastPos; lastPos = this._primaryCoord(e); this.state.translate += delta; this.render(); }});
+        svg.addEventListener('wheel', (e)=>{ if(e.ctrlKey || e.metaKey){ e.preventDefault(); const rect = svg.getBoundingClientRect(); const pos = this._primaryCoord(e) - (this.state.orientation==='horizontal'?rect.left:rect.top); const oldScale = this.state.scale; const dir = Math.sign(-e.deltaY); const factor = 1 + (dir*0.15);
+          const newScale = clamp(oldScale*factor, 0.2, 14);
+          // Zoom around cursor position
+          this.state.translate = (pos + this.state.translate) - (pos * newScale/oldScale);
+          this.state.scale = newScale; this.render(); }
+        }, {passive:false});
+        // Keyboard: Tab navigates focusable <g> nodes, Enter opens sheet, Esc closes
+        this.addEventListener('keydown', (e)=>{
+          if(e.key==='Escape'){sheet.classList.remove('open'); this.focus();}
+        });
+      }
+
+      _primaryCoord(evt){ return this.state.orientation==='horizontal' ? (evt.clientX||evt.offsetX) : (evt.clientY||evt.offsetY); }
+
+      _timeToPx(date, innerSize){
+        const t0 = this.bounds.start.getTime(); const t1 = this.bounds.end.getTime();
+        const span = (t1 - t0) || 1;
+        return ( (new Date(date).getTime() - t0) / span ) * innerSize * this.state.scale + this.state.translate;
+      }
+
+      render(){
+        const svg = this.shadowRoot.querySelector('svg');
+        const { orientation } = this.state;
+        const w = this.clientWidth; const h = this.clientHeight;
+        const padMajor = 60; // axis area
+        const laneSize = 60; const gap = 18;
+        const lanes = this.data.lanes?.length ? this.data.lanes : [{id:'default', label:'', color:'var(--brand)'}];
+        const laneCount = lanes.length;
+        const innerPrimary = orientation==='horizontal' ? (w - padMajor - 24) : (h - padMajor - 24);
+        const innerCross = orientation==='horizontal' ? (laneCount * laneSize + (laneCount-1)*gap) : (laneCount * laneSize + (laneCount-1)*gap);
+        const primaryStart = orientation==='horizontal' ? padMajor : 12;
+        const crossStart = 40;
+        svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+        svg.innerHTML = '';
+
+        // Groups
+        const gGrid = document.createElementNS('http://www.w3.org/2000/svg','g');
+        const gAxis = document.createElementNS('http://www.w3.org/2000/svg','g');
+        const gEras = document.createElementNS('http://www.w3.org/2000/svg','g');
+        const gEvents = document.createElementNS('http://www.w3.org/2000/svg','g');
+        svg.append(gGrid, gAxis, gEras, gEvents);
+
+        // Axis & ticks
+        const axis = document.createElementNS('http://www.w3.org/2000/svg','line');
+        if(orientation==='horizontal'){
+          axis.setAttribute('x1', primaryStart); axis.setAttribute('x2', w-12); axis.setAttribute('y1', h - padMajor/2); axis.setAttribute('y2', h - padMajor/2);
+        } else {
+          axis.setAttribute('y1', primaryStart); axis.setAttribute('y2', h-12); axis.setAttribute('x1', padMajor/2); axis.setAttribute('x2', padMajor/2);
+        }
+        axis.setAttribute('class','axis'); gAxis.append(axis);
+
+        // Ticks (nice 8 divisions)
+        const ticks = 8; const t0 = this.bounds.start.getTime(); const t1 = this.bounds.end.getTime(); const step = (t1-t0)/ticks;
+        for(let i=0;i<=ticks;i++){
+          const t = new Date(t0 + step*i);
+          const pos = this._timeToPx(t, innerPrimary) + primaryStart;
+          const tick = document.createElementNS('http://www.w3.org/2000/svg','g');
+          const ln = document.createElementNS('http://www.w3.org/2000/svg','line');
+          const tx = document.createElementNS('http://www.w3.org/2000/svg','text');
+          tx.setAttribute('class','tick'); tx.textContent = niceDate(t);
+          if(orientation==='horizontal'){
+            ln.setAttribute('x1', pos); ln.setAttribute('x2', pos); ln.setAttribute('y1', 16); ln.setAttribute('y2', h- padMajor/2 - 6);
+            tx.setAttribute('x', pos+4); tx.setAttribute('y', 28);
+          }else{
+            ln.setAttribute('y1', pos); ln.setAttribute('y2', pos); ln.setAttribute('x1', padMajor/2 + 6); ln.setAttribute('x2', w - 16);
+            tx.setAttribute('x', w - 120); tx.setAttribute('y', pos - 6);
+          }
+          ln.setAttribute('stroke','var(--grid)'); ln.setAttribute('stroke-width','1');
+          tick.append(ln, tx); gGrid.append(tick);
+        }
+
+        // Lane labels
+        lanes.forEach((lane, idx)=>{
+          const label = document.createElementNS('http://www.w3.org/2000/svg','text');
+          label.setAttribute('class','laneLabel');
+          label.textContent = lane.label || lane.id;
+          if(orientation==='horizontal'){
+            label.setAttribute('x', 12);
+            label.setAttribute('y', crossStart + idx*(laneSize+gap) + laneSize/2);
+          }else{
+            label.setAttribute('y', 18);
+            label.setAttribute('x', crossStart + idx*(laneSize+gap) + 8);
+          }
+          gAxis.append(label);
+        });
+
+        // Eras (range bands)
+        (this.data.eras||[]).forEach(era=>{
+          const laneIdx = Math.max(0, lanes.findIndex(l=>l.id===era.lane));
+          const a = this._timeToPx(era.start, innerPrimary) + primaryStart;
+          const b = this._timeToPx(era.end, innerPrimary) + primaryStart;
+          const band = document.createElementNS('http://www.w3.org/2000/svg','rect');
+          const prim = Math.min(a,b); const primLen = Math.abs(b-a);
+          if(orientation==='horizontal'){
+            band.setAttribute('x', prim); band.setAttribute('y', crossStart + laneIdx*(laneSize+gap));
+            band.setAttribute('width', primLen); band.setAttribute('height', laneSize);
+          } else {
+            band.setAttribute('y', prim); band.setAttribute('x', crossStart + laneIdx*(laneSize+gap));
+            band.setAttribute('height', primLen); band.setAttribute('width', laneSize);
+          }
+          band.setAttribute('rx','8'); band.setAttribute('class','era');
+          gEras.append(band);
+          if(era.label){
+            const tx = document.createElementNS('http://www.w3.org/2000/svg','text'); tx.textContent = era.label; tx.setAttribute('class','tick');
+            if(orientation==='horizontal'){
+              tx.setAttribute('x', prim + 8); tx.setAttribute('y', crossStart + laneIdx*(laneSize+gap) + 16);
+            } else {
+              tx.setAttribute('y', prim + 16); tx.setAttribute('x', crossStart + laneIdx*(laneSize+gap) + 8);
+            }
+            gEras.append(tx);
+          }
+        });
+
+        // Events
+        const eventsSorted = [...(this.data.items||[])].sort((a,b)=> new Date(a.date||a.start) - new Date(b.date||b.start));
+        eventsSorted.forEach((ev, i)=>{
+          const laneIdx = Math.max(0, lanes.findIndex(l=>l.id===ev.lane));
+          const color = ev.color || lanes[laneIdx]?.color || 'var(--brand)';
+          const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+          g.setAttribute('class','event'); g.setAttribute('tabindex','0'); g.setAttribute('role','button');
+          const posA = this._timeToPx(ev.date||ev.start, innerPrimary) + primaryStart;
+          const posB = this._timeToPx(ev.end||ev.date||ev.start, innerPrimary) + primaryStart;
+          const prim = Math.min(posA,posB), primLen = Math.abs(posB-posA);
+          // Connector to axis
+          const conn = document.createElementNS('http://www.w3.org/2000/svg','line');
+          if(orientation==='horizontal'){
+            conn.setAttribute('x1', (prim + (ev.end? primLen/2:0))); conn.setAttribute('x2', (prim + (ev.end? primLen/2:0)));
+            conn.setAttribute('y1', crossStart + laneIdx*(laneSize+gap) + laneSize); conn.setAttribute('y2', h - padMajor/2);
+          }else{
+            conn.setAttribute('y1', (prim + (ev.end? primLen/2:0))); conn.setAttribute('y2', (prim + (ev.end? primLen/2:0)));
+            conn.setAttribute('x1', crossStart + laneIdx*(laneSize+gap) + laneSize); conn.setAttribute('x2', padMajor/2);
+          }
+          conn.setAttribute('class','connector'); g.append(conn);
+
+          // Marker (point or span)
+          if(ev.end){
+            const r = document.createElementNS('http://www.w3.org/2000/svg','rect');
+            if(orientation==='horizontal'){
+              r.setAttribute('x', prim); r.setAttribute('y', crossStart + laneIdx*(laneSize+gap) + laneSize/2 - 10);
+              r.setAttribute('width', Math.max(10, primLen)); r.setAttribute('height', 20);
+            }else{
+              r.setAttribute('y', prim); r.setAttribute('x', crossStart + laneIdx*(laneSize+gap) + laneSize/2 - 10);
+              r.setAttribute('height', Math.max(10, primLen)); r.setAttribute('width', 20);
+            }
+            r.setAttribute('rx','6'); r.setAttribute('fill', color);
+            g.append(r);
+          } else {
+            const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+            if(orientation==='horizontal'){
+              c.setAttribute('cx', prim); c.setAttribute('cy', crossStart + laneIdx*(laneSize+gap) + laneSize/2);
+            }else{
+              c.setAttribute('cy', prim); c.setAttribute('cx', crossStart + laneIdx*(laneSize+gap) + laneSize/2);
+            }
+            c.setAttribute('r','8'); c.setAttribute('fill', color); c.setAttribute('stroke','white'); c.setAttribute('stroke-width','1');
+            g.append(c);
+          }
+
+          // Label
+          const tx = document.createElementNS('http://www.w3.org/2000/svg','text');
+          tx.textContent = ev.title || '(untitled)'; tx.setAttribute('class','tick');
+          if(orientation==='horizontal'){
+            tx.setAttribute('x', prim + 12); tx.setAttribute('y', crossStart + laneIdx*(laneSize+gap) + laneSize/2 + 4);
+          } else {
+            tx.setAttribute('y', prim + 14); tx.setAttribute('x', crossStart + laneIdx*(laneSize+gap) + laneSize/2 + 12);
+          }
+          g.append(tx);
+
+          // Interaction
+          g.addEventListener('click', ()=> this._openSheet(ev));
+          g.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); this._openSheet(ev);} });
+          gEvents.append(g);
+        });
+      }
+
+      _openSheet(ev){
+        const sheet = this.shadowRoot.querySelector('.sheet');
+        const hasRange = !!ev.end;
+        sheet.innerHTML = `
+          <button class="btn" style="float:right" aria-label="Close" onclick="this.parentElement.classList.remove('open')">Close</button>
+          <h3>${ev.title || '(untitled)'}${ev.lane?` <span style="color:var(--muted);font-weight:400">· ${ev.lane}</span>`:''}</h3>
+          <time>${hasRange ? niceDate(ev.start) + ' → ' + niceDate(ev.end) : niceDate(ev.date||ev.start)}</time>
+          ${ev.detail? `<p>${ev.detail}</p>`: ''}
+          ${ev.media? `<div class="media">${ev.media.src.endsWith('.mp4')? `<video controls src="${ev.media.src}" alt="${ev.media.alt||''}"></video>`: `<img src="${ev.media.src}" alt="${ev.media.alt||''}" />`}</div>`:''}
+          ${ev.link? `<div class="actions"><a class="btn" href="${ev.link}" target="_blank" rel="noreferrer">Open link</a></div>`:''}
+        `;
+        sheet.classList.add('open');
+      }
+
+      // Public API
+      fitAll(){ this.state.scale = 1; this.state.translate = 0; this.render(); }
+    }
+
+    customElements.define('ultimate-timeline', UltimateTimeline);
+  })();
+  </script>
+
+  <script>
+    // Demo controls
+    const el = document.getElementById('utl');
+    document.getElementById('toggleMode').addEventListener('click', ()=>{
+      const next = el.getAttribute('data-mode')==='horizontal' ? 'vertical' : 'horizontal';
+      el.setAttribute('data-mode', next); el.setOrientation(next);
+    });
+    document.getElementById('fitAll').addEventListener('click', ()=> el.fitAll());
+    document.getElementById('todayBtn').addEventListener('click', ()=>{
+      // centre on today
+      const bounds = { start: new Date(window.TIMELINE_DATA.items.reduce((m,v)=> Math.min(m, new Date(v.date||v.start).getTime()), Infinity)), end: new Date(window.TIMELINE_DATA.items.reduce((m,v)=> Math.max(m, new Date(v.end||v.date||v.start).getTime()), -Infinity)) };
+      const t0 = bounds.start.getTime(); const t1 = bounds.end.getTime(); const span = (t1-t0)||1;
+      const svgW = el.clientWidth; const inner = (el.getAttribute('data-mode')==='horizontal'? svgW - 60 - 24 : el.clientHeight - 60 - 24);
+      const today = new Date().getTime();
+      const pos = ((today - t0) / span) * inner * el.state.scale + el.state.translate + 60;
+      // Translate so that pos sits near centre
+      const centre = inner/2 + 60;
+      el.state.translate -= (pos - centre);
+      el.render();
+    });
+  </script>
+</body>
+</html>

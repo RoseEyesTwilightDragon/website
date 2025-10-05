@@ -10,45 +10,23 @@ permissions:
   pages: write
   id-token: write
 
-# Ensure only one run per repo is active; new pushes cancel older
+# Only the latest run proceeds; older runs are cancelled automatically
 concurrency:
   group: website-pages
   cancel-in-progress: true
 
 jobs:
-  # Gate: allow only the newest run on main to proceed
-  gate:
-    runs-on: ubuntu-latest
-    outputs:
-      is_latest: ${{ steps.check.outputs.is_latest }}
-    steps:
-      - name: Check latest push run on main
-        id: check
-        run: |
-          latest=$(gh api repos/${{ github.repository }}/actions/runs \
-            -f branch=main -f event=push -F per_page=1 --jq '.workflow_runs[0].id')
-          echo "latest=$latest"
-          if [ "$latest" = "${{ github.run_id }}" ]; then
-            echo "is_latest=true" >> $GITHUB_OUTPUT
-          else
-            echo "is_latest=false" >> $GITHUB_OUTPUT
-          fi
-        env:
-          GH_TOKEN: ${{ github.token }}
-
   build:
-    needs: gate
-    if: needs.gate.outputs.is_latest == 'true'
-    timeout-minutes: 20
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Tree (debug)
+      - name: Show tree (debug)
         run: |
-          echo "::group::root"; ls -la; echo "::endgroup::"
-          echo "::group::brand"; ls -la brand || true; echo "::endgroup::"
+          echo "::group::ROOT"; ls -la; echo "::endgroup::"
+          echo "::group::BRAND"; ls -la brand || true; echo "::endgroup::"
+          echo "::group::SRC"; ls -la brand/src || true; echo "::endgroup::"
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -59,12 +37,21 @@ jobs:
         working-directory: brand
         run: npm i
 
-      - name: Build (force correct base path)
+      - name: Build with correct public base
         working-directory: brand
         run: npx vite build --base=/website/
 
       - name: SPA fallback (404 -> index)
         run: cp brand/dist/index.html brand/dist/404.html
+
+      - name: Verify base path in built HTML (guard against white screen)
+        run: |
+          if ! grep -Eq '/website/.*\.js' brand/dist/index.html; then
+            echo "❌ Built index.html does not reference /website/ assets. Check base path."
+            sed -n '1,120p' brand/dist/index.html || true
+            exit 1
+          fi
+          echo "✅ Base path present in built HTML."
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
@@ -73,11 +60,10 @@ jobs:
 
   deploy:
     needs: build
-    if: needs.gate.outputs.is_latest == 'true'
+    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
     steps:
       - name: Deploy to GitHub Pages
         id: deployment

@@ -3,7 +3,4 @@
 @tailwind utilities;
 
 :root { color-scheme: light dark; }
-* { outline: none; }
-:focus-visible { @apply ring-2 ring-primary/50; }
 html, body, #root { height: 100%; }
-img, video { background: #f6f6f6; }

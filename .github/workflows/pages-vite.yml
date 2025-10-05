@@ -1,4 +1,4 @@
-name: Deploy brand/ to website.com/brand (keep root intact)
+name: Deploy full site + built /brand
 
 on:
   push: { branches: [ main ] }
@@ -9,6 +9,7 @@ permissions:
   pages: write
   id-token: write
 
+# Newest deploy wins to avoid racing runs
 concurrency:
   group: website-pages
   cancel-in-progress: true
@@ -24,57 +25,78 @@ jobs:
         uses: actions/setup-node@v4
         with: { node-version: 20 }
 
-      - name: Install deps (brand/)
+      # --- Build only the brand app with correct subpath ---
+      - name: Install deps (brand)
         working-directory: brand
         run: npm i
 
-      # Build for /brand (custom-domain subpath)
-      - name: Build brand with correct base
+      - name: Build brand for /brand
         working-directory: brand
         run: npx vite build --base=/brand/
 
-      # Assemble publish/ = (current root mirror) + (fresh /brand)
-      - name: Prepare publish directory
-        run: mkdir -p publish
-
-      # Mirror the current production root so we DON'T overwrite homepage.
-      # If your site blocks bots, this may pull a minimal copy; it's still safer than wiping root.
-      - name: Mirror current website.com root into publish/
+      # --- Stage entire website (everything in repo) ---
+      - name: Stage full site into publish/
         run: |
-          apt-get update && apt-get install -y wget > /dev/null
-          wget -q -e robots=off --no-parent --adjust-extension --convert-links --page-requisites \
-               --no-host-directories --directory-prefix=publish \
-               https://website.com/ || true
+          rm -rf publish
+          mkdir -p publish
+          # Copy everything in repo root (keeps your whole site), EXCEPT:
+          #   - CI files, sources, build dirs we do not want to serve
+          rsync -av \
+            --exclude ".git/" \
+            --exclude ".github/" \
+            --exclude "node_modules/" \
+            --exclude "**/node_modules/" \
+            --exclude "publish/" \
+            --exclude "**/.next/" \
+            --exclude "**/dist/" \
+            --exclude "**/build/" \
+            --exclude "brand/" \
+            ./ publish/
 
-      # Drop our new brand app under /brand
-      - name: Place brand under /brand
+      # --- Overwrite /brand with the built files (and ONLY those) ---
+      - name: Place built /brand (overwrite dev files)
         run: |
           rm -rf publish/brand
           mkdir -p publish/brand
           cp -R brand/dist/* publish/brand/
 
-      # Keep custom domain + Pages quirks
-      - name: Add CNAME and .nojekyll
-        run: |
-          echo "website.com" > publish/CNAME
-          touch publish/.nojekyll
+      # Optional: Pages quirk to avoid Jekyll processing (keeps folders starting with underscores)
+      - name: Add .nojekyll
+        run: touch publish/.nojekyll
 
-      # Guard: ensure brand bundles exist and point to /brand/assets
-      - name: Verify brand build paths
+      # If you already have a CNAME file in repo root, copy it through automatically
+      - name: Preserve CNAME if present
         run: |
-          ls -la publish/brand/assets || (echo "❌ No brand bundles"; exit 1)
-          if ! grep -Eq 'src="/brand/assets/.*\.js"' publish/brand/index.html; then
-            echo "❌ publish/brand/index.html does not reference /brand/assets/*.js"
-            sed -n '1,120p' publish/brand/index.html || true
+          if [ -f CNAME ]; then cp CNAME publish/CNAME; fi
+
+      # --- Guards: block bad deploys that cause white screens ---
+      - name: Guard: brand bundles present
+        run: |
+          ls -la publish/brand/assets || (echo "❌ /brand/assets missing"; exit 1)
+
+      - name: Guard: brand base path correct
+        run: |
+          if ! grep -q 'src="/brand/assets/' publish/brand/index.html; then
+            echo "❌ publish/brand/index.html missing /brand/assets script paths"
+            sed -n '1,140p' publish/brand/index.html || true
             exit 1
           fi
-          if grep -q '/src/main\.tsx' publish/brand/index.html; then
-            echo "❌ dev HTML leaked into brand build"
-            exit 1
-          fi
-          echo "✅ brand paths OK"
 
-      - name: Upload Pages artifact (root + /brand)
+      - name: Guard: dev HTML not leaked
+        run: |
+          ! grep -q '/src/main\.tsx' publish/brand/index.html || (echo "❌ dev HTML leaked into /brand"; exit 1)
+
+      # Debug snapshot (top of built HTML and assets listing)
+      - name: Snapshot
+        run: |
+          echo "::group::INDEX (brand)"
+          sed -n '1,80p' publish/brand/index.html || true
+          echo "::endgroup::"
+          echo "::group::ASSETS (brand)"
+          ls -la publish/brand/assets || true
+          echo "::endgroup::"
+
+      - name: Upload Pages artifact (entire site)
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./publish

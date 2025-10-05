@@ -1,12 +1,10 @@
-// File: vite.config.ts
-// IMPORTANT: Replace <REPO_NAME> with your repo name (e.g., 'brand-timeline')
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'node:path'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/website/',  // <<— required for GitHub Pages project sites
+  base: '/website/', // <-- repo name dictates Pages path
   resolve: {
     alias: { '@': path.resolve(__dirname, 'src') }
   }

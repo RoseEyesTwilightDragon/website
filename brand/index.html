@@ -1,9 +1,14 @@
-<!-- OPTIONAL (only if you rely on absolute in-page links) -->
-<!-- File: brand/index.html -->
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <!-- Helps resolve absolute links under /website/; safe to omit if not needed -->
-  <base href="/website/">
-  <title>Brand Timeline 1.0</title>
-</head>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Brand Timeline</title>
+    <!-- optional but helpful for absolute links under /website/ -->
+    <base href="/website/">
+  </head>
+  <body class="bg-background text-foreground">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

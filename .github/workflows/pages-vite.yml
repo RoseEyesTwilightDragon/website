@@ -1,7 +1,6 @@
 name: Deploy Vite to GitHub Pages
 on:
-  push:
-    branches: [ main ]
+  push: { branches: [ main ] }
   workflow_dispatch:
 
 permissions:
@@ -9,9 +8,7 @@ permissions:
   pages: write
   id-token: write
 
-concurrency:
-  group: "pages"
-  cancel-in-progress: true
+concurrency: { group: "pages", cancel-in-progress: true }
 
 jobs:
   build:
@@ -20,33 +17,50 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node (no cache, no lockfile)
+      - name: Show tree (debug)
+        run: |
+          echo "::group::ROOT"; ls -la; echo "::endgroup::"
+          echo "::group::BRAND"; ls -la brand || true; echo "::endgroup::"
+          echo "::group::SRC"; ls -la brand/src || true; echo "::endgroup::"
+
+      - name: Setup Node (no cache)
         uses: actions/setup-node@v4
-        with:
-          node-version: 20
+        with: { node-version: 20 }
 
       - name: Install deps
         working-directory: brand
         run: npm i
 
-      - name: Build (force correct base path)
+      - name: Build (force public base → /website/)
         working-directory: brand
         run: npx vite build --base=/website/
 
-      - name: SPA fallback (404 -> index)
+      - name: Add SPA fallback (404.html)
         run: cp brand/dist/index.html brand/dist/404.html
+
+      - name: Inject tiny debug banner (prevents blank)
+        run: |
+          sed -i 's#</body>#<div style="position:fixed;bottom:8px;left:8px;padding:6px 8px;background:#111;color:#fff;font:12px/1.2 system-ui;z-index:9999">Build OK • base=/website/</div></body>#' brand/dist/index.html
+
+      - name: Print built index + assets (debug)
+        run: |
+          echo "::group::INDEX.HTML (first 80 lines)"
+          sed -n '1,80p' brand/dist/index.html
+          echo "::endgroup::"
+          echo "::group::ASSETS"
+          ls -la brand/dist
+          ls -la brand/dist/assets || true
+          echo "::endgroup::"
+          echo "Visit: https://${{ github.repository_owner }}.github.io/website/"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./brand/dist
+        with: { path: ./brand/dist }
 
   deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     needs: build
     runs-on: ubuntu-latest
+    environment: { name: github-pages, url: ${{ steps.deployment.outputs.page_url }} }
     steps:
       - name: Deploy to GitHub Pages
         id: deployment

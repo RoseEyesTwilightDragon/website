@@ -1,4 +1,5 @@
-name: Deploy Vite (brand/) to GitHub Pages
+# File: .github/workflows/pages-vite.yml
+name: Deploy Vite (brand/) to GitHub Pages (custom domain)
 
 on:
   push: { branches: [ main ] }
@@ -9,7 +10,7 @@ permissions:
   pages: write
   id-token: write
 
-# Newest push wins; cancel older in-flight deploys
+# Newest push wins (prevents "higher priority" races)
 concurrency:
   group: website-pages
   cancel-in-progress: true
@@ -31,45 +32,54 @@ jobs:
         uses: actions/setup-node@v4
         with: { node-version: 20 }
 
-      - name: Install deps (no lockfile)
+      - name: Install deps (no lockfile needed)
         working-directory: brand
         run: npm i
 
-      # 🔑 Use relative base so assets load at / or /website/
-      - name: Build (Vite)
+      # 🔑 Custom domain -> root path -> absolute base `/`
+      - name: Build (Vite, base=/)
         working-directory: brand
-        run: npx vite build --base=./
+        run: npx vite build --base=/
 
-      # Route all SPA paths to index.html on Pages
-      - name: Add 404 fallback
-        run: cp brand/dist/index.html brand/dist/404.html
-
-      # Custom domain for Pages artifact (so website.com serves THIS build)
-      - name: Add CNAME for custom domain
-        run: echo "website.com" > brand/dist/CNAME
-
-      # Guards: ensure we are deploying BUILT HTML (not dev)
-      - name: Ensure JS bundle exists
+      # SPA deep-link fallback + Pages quirks
+      - name: Add 404 fallback, .nojekyll, CNAME
         run: |
-          if [ -z "$(ls -1 brand/dist/assets/*.js 2>/dev/null)" ]; then
-            echo "❌ No JS bundles in dist/assets — build failed."
-            ls -la brand/dist || true
-            exit 1
-          fi
+          cp brand/dist/index.html brand/dist/404.html
+          touch brand/dist/.nojekyll
+          echo "website.com" > brand/dist/CNAME
 
-      - name: FAIL if dev entry is referenced
+      # Optional convenience: make /brand redirect to /
+      - name: Add /brand redirect page
+        run: |
+          mkdir -p brand/dist/brand
+          cat > brand/dist/brand/index.html <<'HTML'
+          <!doctype html><meta charset="utf-8">
+          <meta http-equiv="refresh" content="0; url=/" />
+          <script>location.replace("/");</script>
+          HTML
+
+      # Guards to prevent silent bad deploys
+      - name: Ensure JS bundles exist
+        run: |
+          ls -la brand/dist/assets || (echo "❌ No JS bundles in dist/assets"; exit 1)
+
+      - name: FAIL if dev entry (src/main.tsx) leaked
         run: |
           if grep -qE '/src/main\.tsx' brand/dist/index.html; then
-            echo "❌ dist/index.html references /src/main.tsx (dev HTML)."
+            echo "❌ dev HTML found: /src/main.tsx referenced in built index.html"
             sed -n '1,120p' brand/dist/index.html || true
             exit 1
           fi
-          if ! grep -qE '\.\/assets\/.*\.js' brand/dist/index.html; then
-            echo "❌ dist/index.html does not reference ./assets/*.js (bad base?)."
+
+      - name: Verify absolute root asset paths
+        run: |
+          # For base=/, scripts must be /assets/*.js (absolute root)
+          if ! grep -Eq 'src="/assets/.*\.js"' brand/dist/index.html; then
+            echo "❌ Built HTML does not reference /assets/*.js (wrong base?)"
             sed -n '1,120p' brand/dist/index.html || true
             exit 1
           fi
-          echo "✅ Built HTML looks correct."
+          echo "✅ Built HTML references /assets/*.js"
 
       - name: Print built index + assets (debug)
         run: |
@@ -81,9 +91,10 @@ jobs:
           ls -la brand/dist/assets
           echo "::endgroup::"
 
-      - name: Upload Pages artifact
+      - name: Upload Pages artifact (dist only)
         uses: actions/upload-pages-artifact@v3
-        with: { path: ./brand/dist }
+        with:
+          path: ./brand/dist
 
   deploy:
     needs: build

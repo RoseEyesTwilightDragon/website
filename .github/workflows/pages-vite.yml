@@ -1,8 +1,7 @@
 name: Deploy Vite (brand/) to GitHub Pages
 
 on:
-  push:
-    branches: [ main ]
+  push: { branches: [ main ] }
   workflow_dispatch:
 
 permissions:
@@ -10,7 +9,7 @@ permissions:
   pages: write
   id-token: write
 
-# Only the latest run proceeds; older runs are cancelled automatically
+# Newest push wins; cancel older in-flight deploys
 concurrency:
   group: website-pages
   cancel-in-progress: true
@@ -30,33 +29,61 @@ jobs:
 
       - name: Setup Node
         uses: actions/setup-node@v4
-        with:
-          node-version: 20
+        with: { node-version: 20 }
 
       - name: Install deps (no lockfile)
         working-directory: brand
         run: npm i
 
-      - name: Build with correct public base
+      # 🔑 Use relative base so assets load at / or /website/
+      - name: Build (Vite)
         working-directory: brand
-        run: npx vite build --base=/website/
+        run: npx vite build --base=./
 
-      - name: SPA fallback (404 -> index)
+      # Route all SPA paths to index.html on Pages
+      - name: Add 404 fallback
         run: cp brand/dist/index.html brand/dist/404.html
 
-      - name: Verify base path in built HTML (guard against white screen)
+      # Custom domain for Pages artifact (so website.com serves THIS build)
+      - name: Add CNAME for custom domain
+        run: echo "website.com" > brand/dist/CNAME
+
+      # Guards: ensure we are deploying BUILT HTML (not dev)
+      - name: Ensure JS bundle exists
         run: |
-          if ! grep -Eq '/website/.*\.js' brand/dist/index.html; then
-            echo "❌ Built index.html does not reference /website/ assets. Check base path."
+          if [ -z "$(ls -1 brand/dist/assets/*.js 2>/dev/null)" ]; then
+            echo "❌ No JS bundles in dist/assets — build failed."
+            ls -la brand/dist || true
+            exit 1
+          fi
+
+      - name: FAIL if dev entry is referenced
+        run: |
+          if grep -qE '/src/main\.tsx' brand/dist/index.html; then
+            echo "❌ dist/index.html references /src/main.tsx (dev HTML)."
             sed -n '1,120p' brand/dist/index.html || true
             exit 1
           fi
-          echo "✅ Base path present in built HTML."
+          if ! grep -qE '\.\/assets\/.*\.js' brand/dist/index.html; then
+            echo "❌ dist/index.html does not reference ./assets/*.js (bad base?)."
+            sed -n '1,120p' brand/dist/index.html || true
+            exit 1
+          fi
+          echo "✅ Built HTML looks correct."
+
+      - name: Print built index + assets (debug)
+        run: |
+          echo "::group::INDEX (top 80)"
+          sed -n '1,80p' brand/dist/index.html
+          echo "::endgroup::"
+          echo "::group::ASSETS"
+          ls -la brand/dist
+          ls -la brand/dist/assets
+          echo "::endgroup::"
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./brand/dist
+        with: { path: ./brand/dist }
 
   deploy:
     needs: build

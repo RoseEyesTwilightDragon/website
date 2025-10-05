@@ -1,5 +1,4 @@
-# File: .github/workflows/pages-vite.yml
-name: Deploy Vite (brand/) to GitHub Pages (custom domain)
+name: Deploy brand/ to website.com/brand (keep root intact)
 
 on:
   push: { branches: [ main ] }
@@ -10,7 +9,6 @@ permissions:
   pages: write
   id-token: write
 
-# Newest push wins (prevents "higher priority" races)
 concurrency:
   group: website-pages
   cancel-in-progress: true
@@ -22,79 +20,64 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Show tree (debug)
-        run: |
-          echo "::group::ROOT"; ls -la; echo "::endgroup::"
-          echo "::group::BRAND"; ls -la brand || true; echo "::endgroup::"
-          echo "::group::SRC"; ls -la brand/src || true; echo "::endgroup::"
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with: { node-version: 20 }
 
-      - name: Install deps (no lockfile needed)
+      - name: Install deps (brand/)
         working-directory: brand
         run: npm i
 
-      # 🔑 Custom domain -> root path -> absolute base `/`
-      - name: Build (Vite, base=/)
+      # Build for /brand (custom-domain subpath)
+      - name: Build brand with correct base
         working-directory: brand
-        run: npx vite build --base=/
+        run: npx vite build --base=/brand/
 
-      # SPA deep-link fallback + Pages quirks
-      - name: Add 404 fallback, .nojekyll, CNAME
-        run: |
-          cp brand/dist/index.html brand/dist/404.html
-          touch brand/dist/.nojekyll
-          echo "website.com" > brand/dist/CNAME
+      # Assemble publish/ = (current root mirror) + (fresh /brand)
+      - name: Prepare publish directory
+        run: mkdir -p publish
 
-      # Optional convenience: make /brand redirect to /
-      - name: Add /brand redirect page
+      # Mirror the current production root so we DON'T overwrite homepage.
+      # If your site blocks bots, this may pull a minimal copy; it's still safer than wiping root.
+      - name: Mirror current website.com root into publish/
         run: |
-          mkdir -p brand/dist/brand
-          cat > brand/dist/brand/index.html <<'HTML'
-          <!doctype html><meta charset="utf-8">
-          <meta http-equiv="refresh" content="0; url=/" />
-          <script>location.replace("/");</script>
-          HTML
+          apt-get update && apt-get install -y wget > /dev/null
+          wget -q -e robots=off --no-parent --adjust-extension --convert-links --page-requisites \
+               --no-host-directories --directory-prefix=publish \
+               https://website.com/ || true
 
-      # Guards to prevent silent bad deploys
-      - name: Ensure JS bundles exist
+      # Drop our new brand app under /brand
+      - name: Place brand under /brand
         run: |
-          ls -la brand/dist/assets || (echo "❌ No JS bundles in dist/assets"; exit 1)
+          rm -rf publish/brand
+          mkdir -p publish/brand
+          cp -R brand/dist/* publish/brand/
 
-      - name: FAIL if dev entry (src/main.tsx) leaked
+      # Keep custom domain + Pages quirks
+      - name: Add CNAME and .nojekyll
         run: |
-          if grep -qE '/src/main\.tsx' brand/dist/index.html; then
-            echo "❌ dev HTML found: /src/main.tsx referenced in built index.html"
-            sed -n '1,120p' brand/dist/index.html || true
+          echo "website.com" > publish/CNAME
+          touch publish/.nojekyll
+
+      # Guard: ensure brand bundles exist and point to /brand/assets
+      - name: Verify brand build paths
+        run: |
+          ls -la publish/brand/assets || (echo "❌ No brand bundles"; exit 1)
+          if ! grep -Eq 'src="/brand/assets/.*\.js"' publish/brand/index.html; then
+            echo "❌ publish/brand/index.html does not reference /brand/assets/*.js"
+            sed -n '1,120p' publish/brand/index.html || true
             exit 1
           fi
-
-      - name: Verify absolute root asset paths
-        run: |
-          # For base=/, scripts must be /assets/*.js (absolute root)
-          if ! grep -Eq 'src="/assets/.*\.js"' brand/dist/index.html; then
-            echo "❌ Built HTML does not reference /assets/*.js (wrong base?)"
-            sed -n '1,120p' brand/dist/index.html || true
+          if grep -q '/src/main\.tsx' publish/brand/index.html; then
+            echo "❌ dev HTML leaked into brand build"
             exit 1
           fi
-          echo "✅ Built HTML references /assets/*.js"
+          echo "✅ brand paths OK"
 
-      - name: Print built index + assets (debug)
-        run: |
-          echo "::group::INDEX (top 80)"
-          sed -n '1,80p' brand/dist/index.html
-          echo "::endgroup::"
-          echo "::group::ASSETS"
-          ls -la brand/dist
-          ls -la brand/dist/assets
-          echo "::endgroup::"
-
-      - name: Upload Pages artifact (dist only)
+      - name: Upload Pages artifact (root + /brand)
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./brand/dist
+          path: ./publish
 
   deploy:
     needs: build

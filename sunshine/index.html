@@ -1,460 +1,189 @@
 <!doctype html>
 <html lang="en-GB">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Matthew &amp; Jessica — We’re engaged</title>
-  <meta name="description" content="Matthew &amp; Jessica are engaged">
-  <link rel="canonical" href="https://kovacssheppard.com">
-  <meta name="theme-color" content="#111111">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>She Said Yes — Sunshine</title>
+    <meta name="description" content="A minimal, instant-loading landing page with a hero photo and three thumbnails below. Click a photo to swap it into the hero." />
 
-  <!-- Open Graph (Facebook-first) -->
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="Matthew &amp; Jessica — We’re engaged">
-  <meta property="og:description" content="Tokyo, Japan · 30 Oct 2025">
-  <meta property="og:url" content="https://kovacssheppard.com">
-  <meta property="og:site_name" content="Matthew &amp; Jessica">
-  <meta property="og:locale" content="en_GB">
-  <meta property="og:image" content="pen.jpg">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Engagement announcement for Matthew &amp; Jessica">
+    <!-- Optional: uncomment to use a fancier script font (loads fast with swap, but system serif is default for instant load) -->
+    <!-- <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet"> -->
 
-  <style>
-    :root{
-      --bg:#fff; --fg:#111; --muted:#6b6b6b; --ring:#000;
-      --gap:0px;             /* space between items */
-      --expander-max:160px;   /* expanded gap height */
-      --radius:14px;
-    }
-    /* PATCH: NO-PAGE-SCROLL */
-    html,body{
-      height:100%;
-      margin:0;
-      background:var(--bg);
-      color:var(--fg);
-      -webkit-font-smoothing:antialiased;
-      overflow:hidden;            /* stop any vertical scroll / 1px gaps */
-      overscroll-behavior:none;   /* prevent bounce on touch devices */
-    }
+    <style>
+      :root {
+        --bg-start: #f4ecff; /* soft lilac */
+        --bg-end:   #fff9ff; /* near-white with a hint of pink */
+        --ink: #2b2b2b;
+        --muted: #5a5a5a;
+        --radius: 16px;
+        --gap: 12px;
+        --shadow: 0 1px 2px rgba(0,0,0,.06), 0 8px 24px rgba(0,0,0,.06);
+      }
 
-    /* STEP-06 FIT-VIEWPORT */
-/* PATCH-FRAME-EDGE */
-    .frame{
-      width:min(100vw, 133.333dvh);
-      height:100dvh;
-      margin-inline:auto;
-      display:flex; align-items:center; justify-content:center;
-      padding:0;                 /* was clamp(...) — remove white border */
-      box-sizing:border-box;
-    }
+      * { box-sizing: border-box; }
+      html, body { height: 100%; }
+      body {
+        margin: 0;
+        color: var(--ink);
+        font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif; /* weddingy, fast */
+        background: linear-gradient(180deg, var(--bg-start), var(--bg-end)); /* subtle gradient */
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
 
+      .wrap {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 20px clamp(14px, 4vw, 28px) 28px;
+        display: grid;
+        row-gap: clamp(12px, 2.5vh, 20px);
+        min-height: 100dvh;
+      }
 
-    .stack{
-      width:100%;
-      display:grid;
-      grid-template-rows:auto auto auto; /* hero, expander, thumbs */
-      gap:var(--gap);
-    }
+      header {
+        text-align: center;
+        padding-top: clamp(6px, 2vh, 20px);
+      }
+      h1 {
+        margin: 0 0 6px 0;
+        font-size: clamp(2.2rem, 9vw, 5rem);
+        line-height: 1.05;
+        letter-spacing: 0.01em;
+        font-weight: 700;
+      }
+      .sub { color: var(--muted); font-size: clamp(0.95rem, 2.8vw, 1.15rem); }
 
-/* PATCH-TILE-EDGE */
-    .hero, .thumb{
-      border-radius:0;           /* remove rounded white corners */
-      box-shadow:none;           /* remove soft white glow */
-      background:#000;           /* avoids faint seams on bright images */
-    }
-    /* PATCH-FIGURE-MARGINS */
-    .thumb{ margin:0; }          /* <figure> has default margin — kill it */
-    .thumbs{ margin:0; }         /* belt-and-braces */
+      .hero {
+        display: grid;
+        align-items: center;
+        justify-items: center;
+      }
+      .hero-figure {
+        width: 100%;
+        margin: 0;
+        border-radius: var(--radius);
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        background: #fff6; /* light placeholder behind images */
+      }
+      .hero-figure img {
+        display: block;
+        width: 100%;
+        height: auto;          /* keep natural aspect ratio */
+        max-height: min(70vh, 820px); /* responsive, prevents overflow on short screens */
+        object-fit: contain;   /* never crop; letterbox if portrait */
+      }
 
-    .hero{ aspect-ratio:16 / 9; }
-    .thumbs{ display:grid; grid-template-columns:repeat(3, 1fr); gap:var(--gap); }
-    .thumb{ aspect-ratio:16 / 9; }
-    figure { margin:0; }        /* default browser margin creates gaps */
-    .thumb { margin:0; }        /* belt-and-braces */
-    .thumbs{ gap:0; }           /* ensure no grid gap */
-    .stack { gap:0; }           /* ensure no stack gap */
+      .thumbs {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--gap);
+        align-items: stretch;
+      }
+      .thumbs button {
+        appearance: none;
+        border: none;
+        padding: 0;
+        background: transparent;
+        border-radius: var(--radius);
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        cursor: pointer;
+        outline-offset: 4px;
+      }
+      .thumbs img {
+        display: block;
+        width: 100%;
+        height: auto; /* preserve aspect */
+      }
 
-    .hero img, .thumb img{
-      width:100%; height:100%; object-fit:cover; display:block;
-      object-position:center;
-      transform:none;
-      opacity:1;
-    }
-    .ready .hero img, .ready .thumb img{ opacity:1; transform:none; }
-    @media (prefers-reduced-motion: reduce){
-      .hero img, .thumb img{ transition:none }
-    }
+      .date {
+        text-align: center;
+        font-size: clamp(1rem, 3.5vw, 1.25rem);
+        letter-spacing: 0.03em;
+        color: var(--muted);
+        padding-top: 2px;
+      }
 
-    /* Seam toolbar (sits on the line between hero and thumbs) */
-    .seam{
-      position:absolute;
-      left:50%;
-      bottom:calc(-.5rem); /* dip across the seam */
-      translate:-50% 50%;
-      background:#fff;
-      border:1px solid #e5e5e5;
-      border-radius:999px;
-      padding:.35rem .5rem;
-      display:flex; gap:.25rem;
-      box-shadow:0 6px 20px rgba(0,0,0,.08);
-      z-index:3;
-    }
-    .chip{
-      border:none; background:#fff; color:#111; font:600 0.9rem/1.1 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      padding:.5rem .8rem; border-radius:999px; cursor:pointer;
-    }
-    .chip:focus-visible{ outline:3px solid var(--ring); outline-offset:2px; }
+      @media (prefers-reduced-motion: no-preference) {
+        .hero-figure img { transition: opacity .18s ease; }
+      }
 
+      @media (max-width: 520px) {
+        .wrap { padding-bottom: 18px; }
+        .thumbs { gap: 10px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <header>
+        <h1>She Said Yes</h1>
+        <!-- Optional subtitle area; leave empty if you truly want zero fluff -->
+        <!-- <div class="sub">(leave blank or add a tiny note)</div> -->
+      </header>
 
-
-    .expander{
-      overflow:hidden;
-      max-height:0;
-      padding:0;
-      border:0;
-      transition:max-height .45s ease, padding .45s ease, border-color .45s ease, background .45s ease;
-    }
-    .expander.open{
-      padding:14px 16px;
-      border:1px solid #e8e8e8;
-      background:#fafafa;
-    }
-    .expander > .content{
-      display:grid;
-      grid-template-columns:1fr 1fr 1fr;
-      gap:16px;
-      align-items:start;
-      font:400 0.95rem/1.4 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      color:#333;
-    }
-    .expander h3{ margin:.2rem 0 .4rem; font-size:1rem }
-    .muted{ color:var(--muted) }
-
-    /* Accessibility: keep everything keyboardable */
-    a, button{ -webkit-tap-highlight-color:transparent }
-
-    /* Small screens: keep no-scroll guarantee by narrowing inner width (via frame width rule).
-       On very narrow phones, reduce gap & text size inside expander. */
-/* FIX-3: no gaps on mobile */
-@media (max-width:520px){
-  :root{ --gap:0 }
-  .expander > .content{ grid-template-columns:1fr; gap:10px }
-}
-
-    .hero{ position:relative; }
-
-    .seam-overlay{
-      position:absolute; left:0; right:0; bottom:-1px;
-      display:grid; grid-template-columns:repeat(3,1fr);
-      align-items:end; gap:0; padding:0 1.5%;
-      z-index:5; pointer-events:none;
-    }
-
-    .seam-btn{
-      pointer-events:auto;
-      margin:0 auto .5rem;
-      width:92%;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.65);
-      background:rgba(255,255,255,.08);
-      backdrop-filter:saturate(120%) blur(2px);
-      color:#fff;
-      font:600 .95rem/1 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      padding:.7rem 1rem;
-      text-shadow:0 1px 2px rgba(0,0,0,.35);
-    }
-    .seam-btn:focus-visible{ outline:3px solid #fff; outline-offset:2px; }
-    @media (prefers-reduced-transparency: reduce){
-      .seam-btn{ background:#fff; color:#111; text-shadow:none; }
-    }
-/* PATCH-TL CSS — CLEAN, CENTERED, NON-WARP, SOLID TILES */
-
-#panel-timeline{
-  grid-column:1 / -1;
-  justify-self:center;
-  width:100%;
-  text-align:initial;
-  direction:ltr;
-}
-
-/* centre the items within the expander's 3-col grid */
-.expander > .content{ justify-items:center; }
-
-.tl-h{
-  margin:.2rem 0 .8rem;
-  font:600 1rem/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  text-align:center;
-}
-
-/* centred grid under a top hairline */
-.tl{
-  position:relative;
-  display:grid;
-  grid-template-columns:repeat(5, minmax(140px, 1fr)); /* set to your item count */
-  gap:16px;
-  justify-content:center;
-  justify-items:center;
-  align-items:start;
-  margin-inline:auto;
-  max-width:1100px;
-  padding-top:36px;            /* space reserved for hairline + dot */
-  direction:ltr;               /* neutralise any rtl inherit */
-}
-
-/* SVG hairline — visible, crisp */
-.tl-line-svg{
-  position:absolute; left:0; right:0; top:0;
-  width:100%; height:2px;
-  z-index:10;                  /* <— ABOVE background, below dot */
-  pointer-events:none;
-}
-.tl-line-svg line{
-  stroke:#111; 
-  stroke-width:.1.2;
-  shape-rendering:crispEdges; 
-  vector-effect:non-scaling-stroke;
-  stroke-linecap:square;
-  opacity:1;
-}
-
-/* solid tile (stops “grid” showing through) */
-.tl-item{
-  position:relative;
-  box-sizing:border-box;
-  background:#fff;
-  border:1px solid #eee;
-  border-radius:10px;
-  padding:10px 10px 12px;
-  width:100%;
-  display:grid;
-  grid-template-rows:auto auto;   /* label, image (dot is absolute) */
-  gap:8px;
-  align-items:start;
-  justify-items:center;
-  cursor:pointer;
-  text-align:center;
-  z-index:1;                      /* keep under the dot; over hairline is fine */
-  margin-top:8px;                 /* visual breathing room below the line */
-}
-
-/* ring dot on the hairline */
-.tl-dot{
-  position:absolute;
-  left:50%;
-  top:-7px;                        /* sits centered on hairline */
-  transform:translateX(-50%);
-  width:12px; height:12px; border-radius:50%;
-  background:#111;
-  box-shadow:
-    0 0 0 4px #fff inset,         /* inner ring */
-    0 0 0 2px #111,               /* outer ring */
-    0 0 0 8px rgba(0,0,0,.06);    /* soft glow */
-  z-index:20;                      /* above hairline and tile */
-}
-
-/* label at top, stable height */
-.tl-date{
-  min-height:1.2em;
-  font:500 .9rem/1 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  color:#333;
-}
-
-/* image: keep proportions; no warp; solid bg to avoid “grid peeking” */
-.tl-thumb{
-  display:block;
-  max-width:100%;
-  height:auto;                     /* natural aspect */
-  max-height:220px;                /* cap tall portraits; tweak or remove */
-  object-fit:contain;              /* no cropping */
-  background:#fff;                 /* match tile */
-  border-radius:6px;
-  box-shadow:0 8px 18px rgba(0,0,0,.08);
-}
-
-/* hover/focus */
-.tl-item:focus-visible{ outline:3px solid #000; outline-offset:4px; border-radius:10px; }
-.tl-item:hover .tl-thumb{ filter:brightness(1.05); transform:translateY(-1px); transition:transform .2s ease, filter .2s ease; }
-
-/* mobile: 2 columns, centred */
-@media (max-width:520px){
-  .tl{
-    grid-template-columns:repeat(2, minmax(120px, 1fr));
-    gap:10px;
-    max-width:520px;
-  }
-}
-
-/* Hidden must beat any inline display */
-#tl-viewer[hidden]{ display:none !important; }
-#tl-viewer{
-  position:fixed; inset:0;
-  background:rgba(0,0,0,.9);
-  display:grid; place-items:center;
-  z-index:999;
-}
-#tl-viewer img{ max-width:92vw; max-height:92vh; object-fit:contain; }
-/* must override any display */
-#tl-viewer[hidden]{ display:none !important; }
-
-  </style>
-</head>
-<body>
-
-  <div class="frame ready" id="frame">
-    <div class="stack" aria-label="Engagement announcement layout">
-      <!-- HERO -->
-      <section class="hero" aria-label="Hero photograph">
-        <img src="eng1.jpg" width="1920" height="1080" loading="eager" fetchpriority="high">
-        <!-- Seam toolbar placed on the hero’s bottom edge (across the seam) -->
-      <!-- PATCH: SEAM OVERLAY -->
-      <div class="seam-overlay" role="toolbar" aria-label="More information">
-        <button class="seam-btn" data-target="story">Story</button>
-        <button class="seam-btn" data-target="timeline">Timeline</button>
-        <button class="seam-btn" data-target="details">Details</button>
-      </div>
+      <section class="hero" aria-label="Featured photo">
+        <figure class="hero-figure">
+          <img id="heroImg"
+               src="eng1.jpg"
+               fetchpriority="high"
+               decoding="async"
+               draggable="false">
+        </figure>
       </section>
 
-      <!-- EXPANDER (animated gap) -->
- <!-- TL-CLEAN MARKUP -->
+      <nav class="thumbs" aria-label="Choose a photo to feature">
+        <button type="button" class="thumb" data-src="eng2.jpg" aria-label="Show photo 1">
+          <img src="eng2.jpg" 
+               loading="lazy" decoding="async" draggable="false">
+        </button>
 
-<script>
-  // ===== Expander wiring =====
-  const expander = document.getElementById('expander');
-  const content  = document.getElementById('expanderContent');
-  const panels   = content ? Array.from(content.children) : [];
-  let current = null;
+        <button type="button" class="thumb" data-src="eng3" data-alt="Laughing by the river" aria-label="Show photo 2">
+          <img src="eng3" 
+               loading="lazy" decoding="async" draggable="false">
+        </button>
 
-  function openPanel(name){
-  if (!expander || !content) return;
+        <button type="button" class="thumb" data-src="ring1.jpg" data-alt="Close-up of the engagement ring" aria-label="Show the ring (portrait)">
+          <img src="ring1.jpg" alt="Close-up of the engagement ring"
+               loading="lazy" decoding="async" draggable="false">
+        </button>
+      </nav>
 
-  // Show requested panel, hide others
-  Array.from(content.children).forEach(p => p.hidden = true);
-  const target = document.getElementById('panel-' + name);
-  if (target) target.hidden = false;
+      <p class="date" aria-label="Wedding date">
+        30 May 2026
+      </p>
+    </main>
 
-  // Open expander first
-  expander.classList.add('open');
-  expander.setAttribute('aria-expanded','true');
+    <script>
+      (function () {
+        const hero = document.getElementById('heroImg');
+        const thumbs = document.querySelectorAll('.thumbs .thumb');
 
-  // Height recalculation helper
-  const resize = () => {
-    expander.style.maxHeight = (content.scrollHeight + 24) + 'px';
-  };
+        function swap(src, alt) {
+          if (!src) return;
+          // fade swap for a tiny bit of polish (respects reduced motion via CSS)
+          hero.style.opacity = 0.001;
+          const img = new Image();
+          img.onload = function () {
+            hero.src = src;
+            if (alt) hero.alt = alt;
+            hero.style.opacity = 1;
+          };
+          img.src = src;
+        }
 
-  // Double RAF ensures styles apply before measuring
-  requestAnimationFrame(() => {
-    requestAnimationFrame(resize);
-  });
-
-  // Also resize when any image inside loads (first open case)
-  content.querySelectorAll('img').forEach(img => {
-    if (!img.dataset._boundResize) {
-      img.addEventListener('load', resize);
-      img.dataset._boundResize = '1';
-    }
-  });
-}
-
-  function closePanel(){
-    if (!expander) return;
-    expander.classList.remove('open');
-    expander.setAttribute('aria-expanded','false');
-    expander.style.maxHeight = null;
-  }
-
-  // Bind seam buttons
-  document.querySelectorAll('.seam-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const name = btn.dataset.target;
-      if (!name) return;
-      if (current === name && expander.classList.contains('open')) { closePanel(); current = null; return; }
-      current = name; openPanel(name);
-    });
-  });
-
-  // Close when clicking outside expander/overlay
-  document.addEventListener('click', (e) => {
-    const insideOverlay = e.target.closest('.seam-overlay');
-    const insideExpander = e.target.closest('#expander');
-    if (!insideOverlay && !insideExpander && expander && expander.classList.contains('open')) {
-      closePanel(); current = null;
-    }
-  });
-// ===== Timeline lightbox =====
-(function(){
-  const viewer = document.getElementById('tl-viewer');
-  const img    = document.getElementById('tl-viewer-img');
-
-  // All clickable timeline items and their dots
-  const items  = Array.from(document.querySelectorAll('.tl-item'));
-  const dots   = items.map(it => it.querySelector('.tl-dot'));
-
-  let idx = -1;
-
-  function setActiveDot(i){
-    dots.forEach(d => d && d.classList.remove('active'));
-    const d = dots[i];
-    if (d) d.classList.add('active');
-  }
-
-  function openAt(i){
-    const el = items[i];
-    if (!el || !viewer || !img) return;
-
-    idx = i;
-    const src = el.getAttribute('data-full') || el.querySelector('.tl-thumb')?.src;
-    img.src = src;
-
-    // show viewer and mark active dot
-    viewer.removeAttribute('hidden');
-    setActiveDot(i);
-  }
-
-  function close(){
-    if (!viewer || !img) return;
-    viewer.setAttribute('hidden','');
-    img.src = '';
-    setActiveDot(-1); // clear highlight
-  }
-
-  // Click/keyboard on items
-  items.forEach((btn, i)=>{
-    btn.addEventListener('click', ()=> openAt(i));
-    btn.addEventListener('keydown', (e)=> {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openAt(i); }
-    });
-  });
-
-  // Click outside image closes
-  if (viewer){
-    viewer.addEventListener('click', (e)=>{
-      if (!e.target.closest('#tl-viewer-img')) close();
-    });
-  }
-
-  // Keyboard nav while open
-  document.addEventListener('keydown', (e)=>{
-    if (!viewer || viewer.hasAttribute('hidden')) return;
-    if (e.key === 'Escape')      return close();
-    if (e.key === 'ArrowRight')  return openAt(Math.min(items.length - 1, idx + 1));
-    if (e.key === 'ArrowLeft')   return openAt(Math.max(0, idx - 1));
-  });
-})();
-// Keep height correct on resize/orientation changes
-window.addEventListener('resize', () => {
-  if (expander && expander.classList.contains('open')) {
-    expander.style.maxHeight = (content.scrollHeight + 24) + 'px';
-  }
-});
-
-
-</script>
-  <!-- TL VIEWER (clean, hidden by default) -->
-<div id="tl-viewer" hidden>
-  <img id="tl-viewer-img" alt="Timeline photo">
-</div>
-
-
-</body>
+        thumbs.forEach(btn => {
+          btn.addEventListener('click', () => swap(btn.dataset.src, btn.dataset.alt));
+          btn.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              swap(btn.dataset.src, btn.dataset.alt);
+            }
+          });
+        });
+      })();
+    </script>
+  </body>
 </html>

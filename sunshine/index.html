@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>She Said Yes </title>
+    <title>She Said Yes</title>
     <meta name="description" content="A minimal, instant-loading landing page with a hero photo and three thumbnails below. Click a photo to swap it into the hero." />
 
     <!-- Optional: uncomment to use a fancier script font (loads fast with swap, but system serif is default for instant load) -->
@@ -13,7 +13,7 @@
     <style>
       :root {
         --bg-start: #f4ecff; /* soft lilac */
-        --bg-end:   #fff9ff; /* near-white with a hint of pink */
+        --bg-end:   ##ECEEFF; /* near-white with a hint of pink */
         --ink: #2b2b2b;
         --muted: #5a5a5a;
         --radius: 16px;
@@ -68,7 +68,7 @@
         margin: 0;
         border-radius: var(--radius);
         overflow: hidden;
-        box-shadow: var(--shadow);
+        box-shadow: none;
         background: linear-gradient(180deg, var(--bg-start), var(--bg-end));
         aspect-ratio: 4 / 3;               /* typical phone landscape; adjust to 16/9 if you prefer */
         max-height: min(70vh, 820px);       /* keeps it sensible on small screens */
@@ -77,9 +77,10 @@
       .hero-figure img {
         display: block;
         width: 100%;
-        height: 100%;          /* keep natural aspect ratio */
+        height: auto;          /* keep natural aspect ratio */
         max-height: none; /* responsive, prevents overflow on short screens */
         object-fit: contain;   /* never crop; letterbox if portrait */
+        border-radius: inherit;  /* match container corners */
       }
 
       .thumbs {
@@ -92,17 +93,20 @@
         appearance: none;
         border: none;
         padding: 0;
-        background: linear-gradient(180deg, var(--bg-start), var(--bg-end));
+        background: transparent;
         border-radius: var(--radius);
         overflow: hidden;
         box-shadow: var(--shadow);
         cursor: pointer;
         outline-offset: 4px;
+        aspect-ratio: 16 / 9;    /* equal heights for all three thumbs */
       }
       .thumbs img {
         display: block;
         width: 100%;
         height: auto; /* preserve aspect */
+        object-fit: contain;
+        border-radius: inherit
       }
 
       .date {
@@ -127,7 +131,7 @@
     <main class="wrap">
       <header>
         <h1>She Said Yes</h1>
-        <!-- Optional subtitle area; leave empty if you truly want zero fluff -->
+        <h3>30 May 2026</h3><!-- Optional subtitle area; leave empty if you truly want zero fluff -->
         <!-- <div class="sub">(leave blank or add a tiny note)</div> -->
       </header>
 
@@ -157,10 +161,6 @@
                loading="lazy" decoding="async" draggable="false">
         </button>
       </nav>
-
-      <p class="date" aria-label="Wedding date">
-        30 May 2026
-      </p>
     </main>
 
     <script>

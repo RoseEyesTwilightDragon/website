@@ -45,7 +45,7 @@
 
       header {
         text-align: center;
-        padding-top: clamp(6px, 2vh, 20px);
+        padding-top: clamp(6px, 2vh, 10px);
       }
       h1 {
         margin: 0 0 6px 0;
@@ -103,18 +103,10 @@
       }
       .thumbs img {
         display: block;
-        width: 100%;
-        height: auto; /* preserve aspect */
+        width: auto;
+        height: 100%; /* preserve aspect */
         object-fit: contain;
         border-radius: inherit
-      }
-
-      .date {
-        text-align: center;
-        font-size: clamp(1rem, 3.5vw, 1.25rem);
-        letter-spacing: 0.03em;
-        color: var(--muted);
-        padding-top: 2px;
       }
 
       @media (prefers-reduced-motion: no-preference) {

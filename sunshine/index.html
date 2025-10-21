@@ -76,7 +76,7 @@
       .hero-figure img {
         display: block;
         width: 100%;
-        height: 100%;          /* keep natural aspect ratio */
+        height: auto;          /* keep natural aspect ratio */
         object-fit: contain;   /* never crop; letterbox if portrait */
         object-position: center center;
         border-radius: 0;  /* match container corners */
@@ -107,7 +107,7 @@
         max-width: 100%;
         display: block;
         width: auto;
-        height: auto; /* preserve aspect */
+        height: 200px; /* preserve aspect */
         object-fit: contain;
         object-position: center center;
         border-radius: var(--radius);

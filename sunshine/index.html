@@ -17,9 +17,9 @@
         --ink: #2b2b2b;
         --muted: #5a5a5a;
         --radius: 16px;
-        --gap: 12px;
+        --gap: 6px;
         --shadow: 0 1px 2px rgba(0,0,0,.06), 0 8px 24px rgba(0,0,0,.06);
-        --heading: #5a3b8c; /* elegant plum for the title */
+        --heading: ##B9C0FF; /* elegant plum for the title */
 
       }
 
@@ -39,13 +39,13 @@
         margin: 0 auto;
         padding: 20px clamp(14px, 4vw, 28px) 28px;
         display: grid;
-        row-gap: clamp(12px, 2.5vh, 20px);
+        row-gap: clamp(6px, 1.5vh, 12px);
         min-height: 100dvh;
       }
 
       header {
         text-align: center;
-        padding-top: clamp(6px, 2vh, 10px);
+        padding-top: clamp(2px, 1vh, 10px);
       }
       h1 {
         margin: 0 0 6px 0;
@@ -54,7 +54,8 @@
         letter-spacing: 0.01em;
         font-weight: 700;
         color: var(--heading);
-        font-family: "Didot", "Bodoni 72", Garamond, Georgia, "Times New Roman", serif;
+        font-family: Garamond", "EB Garamond", "Adobe Garamond Pro",
+               Georgia, "Times New Roman", serif;
       }
       .sub { color: var(--muted); font-size: clamp(0.95rem, 2.8vw, 1.15rem); }
 
@@ -79,7 +80,7 @@
         width: 100%;
         height: auto;          /* keep natural aspect ratio */
         max-height: none; /* responsive, prevents overflow on short screens */
-        object-fit: contain;   /* never crop; letterbox if portrait */
+        object-fit: cover;   /* never crop; letterbox if portrait */
         border-radius: inherit;  /* match container corners */
       }
 
@@ -105,9 +106,35 @@
         display: block;
         width: auto;
         height: 100%; /* preserve aspect */
-        object-fit: contain;
+        object-fit: cover;
         border-radius: inherit
       }
+
+            .date-line {
+        display: flex;
+        align-items: center;
+        gap: clamp(6px, 1.2vw, 12px);
+        margin-top: clamp(4px, 1vh, 10px);
+        color: var(--heading);
+        font-family: "Garamond", "EB Garamond", "Adobe Garamond Pro",
+                     Georgia, "Times New Roman", serif;
+      }
+      
+      .date-line::before,
+      .date-line::after {
+        content: "";
+        height: 1px;
+        background: currentColor;
+        opacity: 0.35;         /* subtle line */
+        flex: 1 1 auto;
+      }
+      
+      .date-line > span {
+        font-size: clamp(1rem, 3vw, 1.15rem);  /* smaller than H1 */
+        letter-spacing: 0.03em;
+        white-space: nowrap;
+      }
+
 
       @media (prefers-reduced-motion: no-preference) {
         .hero-figure img { transition: opacity .18s ease; }
@@ -123,7 +150,7 @@
     <main class="wrap">
       <header>
         <h1>She Said Yes</h1>
-        <h3>30 May 2026</h3><!-- Optional subtitle area; leave empty if you truly want zero fluff -->
+       <div class="date-line"><span>30 May 2026</span></div><!-- Optional subtitle area; leave empty if you truly want zero fluff -->
         <!-- <div class="sub">(leave blank or add a tiny note)</div> -->
       </header>
 

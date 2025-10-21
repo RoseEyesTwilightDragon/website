@@ -63,6 +63,7 @@
         display: grid;
         align-items: center;
         justify-items: center;
+        margin-top: 0;
       }
       .hero-figure {
         width: 100%;
@@ -76,8 +77,8 @@
       }
       .hero-figure img {
         display: block;
-        width: 100%;
-        height: auto;          /* keep natural aspect ratio */
+        width: auto;
+        height: 100%;          /* keep natural aspect ratio */
         max-height: none; /* responsive, prevents overflow on short screens */
         object-fit: contain;   /* never crop; letterbox if portrait */
         object-position: center;
@@ -86,10 +87,11 @@
 
       .thumbs {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(4, 1fr);
         gap: var(--gap);
         align-items: stretch;
       }
+      
       .thumbs button {
         appearance: none;
         border: none;
@@ -102,6 +104,7 @@
         outline-offset: 4px;
         aspect-ratio: 16 / 9;    /* equal heights for all three thumbs */
       }
+      
       .thumbs img {
         display: block;
         width: 100%;
@@ -111,7 +114,7 @@
         border-radius: inherit;
       }
 
-            .date-line {
+      .date-line {
         display: flex;
         align-items: center;
         gap: clamp(6px, 1.2vw, 12px);
@@ -143,7 +146,7 @@
 
       @media (max-width: 520px) {
         .wrap { padding-bottom: 18px; }
-        .thumbs { gap: 10px; }
+        .thumbs { gap: 0px; }
       }
     </style>
   </head>
@@ -166,6 +169,10 @@
       </section>
 
       <nav class="thumbs" aria-label="Choose a photo to feature">
+         <button type="button" class="thumb" data-src="eng1.jpg" aria-label="Show photo 1">
+          <img src="eng1.jpg" 
+               loading="lazy" decoding="async" draggable="false">
+           
         <button type="button" class="thumb" data-src="eng2.jpg" aria-label="Show photo 1">
           <img src="eng2.jpg" 
                loading="lazy" decoding="async" draggable="false">

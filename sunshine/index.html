@@ -37,10 +37,10 @@
       .wrap {
         max-width: 980px;
         margin: 0 auto;
-        padding: 20px clamp(14px, 4vw, 28px) 28px;
+        padding: 8px clamp(14px, 4vw, 28px) 16px;
         display: grid;
-        row-gap: clamp(0px, 0.6vh, 6px);
-        min-height: 100dvh;
+        row-gap: 0;
+        min-height: auto;
       }
 
       header {
@@ -64,7 +64,8 @@
         display: grid;
         align-items: center;
         justify-items: center;
-        margin-top: 0;
+        margin: 0;
+        padding: 0;
       }
       .hero-figure {
         width: 100%;
@@ -73,6 +74,7 @@
         overflow: hidden;
         box-shadow: none;
         background: transparent;
+        line-height: 0;
       }
       .hero-figure img {
         display: block;
@@ -174,7 +176,7 @@
          <button type="button" class="thumb" data-src="eng1.jpg" aria-label="Show photo 1">
           <img src="eng1.jpg" 
                loading="lazy" decoding="async" draggable="false">
-           
+        </button>
         <button type="button" class="thumb" data-src="eng2.jpg" aria-label="Show photo 1">
           <img src="eng2.jpg" 
                loading="lazy" decoding="async" draggable="false">
